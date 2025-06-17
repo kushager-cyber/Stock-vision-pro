@@ -390,7 +390,7 @@ class NewsSentimentService {
     // Calculate sentiment for each time period
     const trends: SentimentTrend[] = []
     
-    for (const [timestamp, items] of timeGroups) {
+    timeGroups.forEach((items, timestamp) => {
       let totalSentiment = 0
       let totalImpact = 0
       let weightedSentiment = 0
@@ -417,7 +417,7 @@ class NewsSentimentService {
         volume: items.length,
         impact: avgImpact
       })
-    }
+    })
 
     // Sort by timestamp
     trends.sort((a, b) => a.timestamp - b.timestamp)
