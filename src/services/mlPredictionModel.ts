@@ -51,8 +51,8 @@ interface BacktestResult {
 }
 
 class MLModel {
-  private modelWeights: number[][]
-  private biases: number[][]
+  private modelWeights: number[][][] // Array of layers, each layer is array of neurons, each neuron has array of weights
+  private biases: number[][] // Array of layers, each layer is array of bias values
   private inputSize: number
   private hiddenSize: number
   private outputSize: number
@@ -72,26 +72,28 @@ class MLModel {
   private initializeWeights() {
     // Xavier initialization for better convergence
     const limit = Math.sqrt(6 / (this.inputSize + this.hiddenSize))
-    
-    this.modelWeights = [
-      // Input to hidden layer
-      Array(this.hiddenSize).fill(0).map(() => 
-        Array(this.inputSize).fill(0).map(() => 
-          (Math.random() * 2 - 1) * limit
-        )
-      ),
-      // Hidden to output layer
-      Array(this.outputSize).fill(0).map(() => 
-        Array(this.hiddenSize).fill(0).map(() => 
-          (Math.random() * 2 - 1) * Math.sqrt(6 / (this.hiddenSize + this.outputSize))
-        )
+
+    // Input to hidden layer weights (hiddenSize neurons, each with inputSize weights)
+    const inputToHidden: number[][] = Array(this.hiddenSize).fill(0).map(() =>
+      Array(this.inputSize).fill(0).map(() =>
+        (Math.random() * 2 - 1) * limit
       )
-    ]
+    )
+
+    // Hidden to output layer weights (outputSize neurons, each with hiddenSize weights)
+    const hiddenToOutput: number[][] = Array(this.outputSize).fill(0).map(() =>
+      Array(this.hiddenSize).fill(0).map(() =>
+        (Math.random() * 2 - 1) * Math.sqrt(6 / (this.hiddenSize + this.outputSize))
+      )
+    )
+
+    // Combine into 3D array: [inputToHidden, hiddenToOutput]
+    this.modelWeights = [inputToHidden, hiddenToOutput] as number[][][]
 
     this.biases = [
       Array(this.hiddenSize).fill(0),
       Array(this.outputSize).fill(0)
-    ]
+    ] as number[][]
   }
 
   // Activation functions
