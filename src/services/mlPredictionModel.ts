@@ -534,14 +534,14 @@ class MLPredictionService {
     const trainingData = this.prepareTrainingData(data)
     
     // Retrain each model
-    for (const [horizon, ensemble] of this.models) {
+    this.models.forEach((ensemble, horizon) => {
       for (const model of ensemble.models) {
         model.train(trainingData)
       }
-      
+
       // Update performance metrics
       ensemble.performance = ensemble.models[0].getPerformance()
-    }
+    })
     
     console.log('Model retraining completed')
   }
