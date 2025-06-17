@@ -239,11 +239,11 @@ export default function PredictionTimeline({
               />
               
               {/* Current price reference line */}
-              <ReferenceLine 
-                y={predictions.currentPrice} 
-                stroke="#6b7280" 
+              <ReferenceLine
+                y={predictions.currentPrice}
+                stroke="#6b7280"
                 strokeDasharray="5 5"
-                label={{ value: "Current", position: "topRight" }}
+                label={{ value: "Current", position: "top" }}
               />
               
               {/* Actual price line */}
