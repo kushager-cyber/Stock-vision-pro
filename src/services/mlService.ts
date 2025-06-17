@@ -249,6 +249,17 @@ class MLService {
           news: 50,
           volume: 50,
         },
+        historicalAccuracy: this.generateHistoricalAccuracy(),
+        modelPerformance: {
+          accuracy: 75 + Math.random() * 15,
+          precision: 70 + Math.random() * 20,
+          recall: 72 + Math.random() * 18,
+          f1Score: 73 + Math.random() * 17,
+          sharpeRatio: 1.2 + Math.random() * 0.8,
+          maxDrawdown: 0.08 + Math.random() * 0.07,
+        },
+        scenarioAnalysis: this.generateScenarioAnalysis(currentPrice),
+        analystComparison: this.generateAnalystComparison(currentPrice),
       }
     }
   }
