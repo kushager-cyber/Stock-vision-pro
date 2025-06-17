@@ -21,11 +21,17 @@ export interface StockData {
   netIncome?: number
   totalAssets?: number
   totalDebt?: number
+  freeCashFlow?: number
   debtToEquity?: number
   roe?: number
   roa?: number
+  returnOnEquity?: number
+  returnOnAssets?: number
   currentRatio?: number
   quickRatio?: number
+  grossMargin?: number
+  operatingMargin?: number
+  netMargin?: number
   priceToBook?: number
   priceToSales?: number
   forwardPE?: number
