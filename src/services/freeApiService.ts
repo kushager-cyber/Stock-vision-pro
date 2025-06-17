@@ -547,6 +547,11 @@ class FreeApiService {
   public clearCache(): void {
     this.cache.clear()
   }
+
+  // Force deployment trigger - TypeScript fixes applied
+  public getVersion(): string {
+    return '1.0.1-typescript-fixed'
+  }
 }
 
 export const freeApiService = new FreeApiService()
