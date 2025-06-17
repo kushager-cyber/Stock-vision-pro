@@ -235,6 +235,8 @@ class MLService {
             direction: 'neutral',
             change: 0,
             changePercent: 0,
+            probabilityDistribution: this.generateProbabilityDistribution(currentPrice, 50),
+            riskReward: this.calculateRiskReward(currentPrice, currentPrice, 50),
           },
         ],
         accuracy: 50,
@@ -244,6 +246,8 @@ class MLService {
           fundamental: 50,
           sentiment: 50,
           market: 50,
+          news: 50,
+          volume: 50,
         },
       }
     }

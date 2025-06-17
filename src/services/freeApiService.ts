@@ -474,9 +474,9 @@ class FreeApiService {
       priceToSales: Math.random() * 10 + 1, // 1-11 P/S ratio
       forwardPE: Math.random() * 25 + 8, // 8-33 forward PE
       pegRatio: Math.random() * 3 + 0.5, // 0.5-3.5 PEG ratio
-      analystRating: ['Strong Buy', 'Buy', 'Hold', 'Sell'][Math.floor(Math.random() * 4)],
+      analystRating: (['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'] as const)[Math.floor(Math.random() * 5)],
       analystTargetPrice: basePrice * (0.9 + Math.random() * 0.3), // ±15% target
-      riskLevel: ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)],
+      riskLevel: (['Low', 'Medium', 'High', 'Very High'] as const)[Math.floor(Math.random() * 4)],
       socialSentiment: (Math.random() - 0.5) * 2 // -1 to +1
     }
   }
