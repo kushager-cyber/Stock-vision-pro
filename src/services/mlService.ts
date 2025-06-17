@@ -1,12 +1,26 @@
 import * as tf from '@tensorflow/tfjs'
 import { PredictionData, ChartData } from '@/types/stock'
 
+// Configure TensorFlow.js for server-side rendering
+if (typeof window === 'undefined') {
+  // Set environment flags for server-side rendering
+  tf.env().set('DEBUG', false)
+  tf.env().set('IS_BROWSER', false)
+  tf.env().set('IS_NODE', true)
+}
+
 class MLService {
   private model: tf.LayersModel | null = null
   private isModelLoaded = false
 
   async initializeModel(): Promise<void> {
     if (this.isModelLoaded) return
+
+    // Skip model initialization during static generation
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+      console.log('Skipping ML model initialization during static generation')
+      return
+    }
 
     try {
       // Create a simple LSTM model for stock prediction
