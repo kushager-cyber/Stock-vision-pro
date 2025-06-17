@@ -51,8 +51,8 @@ interface BacktestResult {
 }
 
 class MLModel {
-  private modelWeights: number[][]
-  private biases: number[]
+  private modelWeights: number[][][]
+  private biases: number[][]
   private inputSize: number
   private hiddenSize: number
   private outputSize: number
