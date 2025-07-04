@@ -25,13 +25,14 @@ import { alphaVantageService } from '@/services/alphaVantageService'
 interface ApiConfig {
   name: string
   key: string
-  status: 'connected' | 'disconnected' | 'testing'
+  status: 'connected' | 'disconnected' | 'testing' | 'tested'
   description: string
   freeLimit: string
   website: string
   marketType: 'world' | 'indian'
   exchanges: string[]
   features: string[]
+  isWorking?: boolean
 }
 
 export default function ApiConfigPage() {
@@ -52,7 +53,7 @@ export default function ApiConfigPage() {
     {
       name: 'Yahoo Finance',
       key: 'No API key required',
-      status: 'connected',
+      status: 'disconnected',
       description: '🌍 Free global stock market data with excellent worldwide coverage',
       freeLimit: 'Unlimited (rate limited)',
       website: 'https://finance.yahoo.com',
@@ -64,7 +65,7 @@ export default function ApiConfigPage() {
     {
       name: 'NSE India',
       key: 'No API key required',
-      status: 'connected',
+      status: 'disconnected',
       description: '🇮🇳 National Stock Exchange of India - Official real-time Indian stock market data',
       freeLimit: 'Unlimited (rate limited)',
       website: 'https://www.nseindia.com',
@@ -75,7 +76,7 @@ export default function ApiConfigPage() {
     {
       name: 'BSE India',
       key: 'No API key required',
-      status: 'connected',
+      status: 'disconnected',
       description: '🇮🇳 Bombay Stock Exchange - Official Indian stock market data and SENSEX',
       freeLimit: 'Unlimited (rate limited)',
       website: 'https://www.bseindia.com',
@@ -147,13 +148,14 @@ export default function ApiConfigPage() {
       
       switch (apiName) {
         case 'Yahoo Finance':
+          console.log('🔄 Testing Yahoo Finance API connection...')
           await freeApiService.getStockData('AAPL')
-          testResult = 'Successfully connected to Yahoo Finance'
-          setApiConfigs(prev => prev.map(api => 
-            api.name === apiName ? { ...api, status: 'connected' } : api
+          testResult = '✅ API is working! Ready to connect.'
+          setApiConfigs(prev => prev.map(api =>
+            api.name === apiName ? { ...api, status: 'tested', isWorking: true } : api
           ))
           break
-          
+
         case 'Alpha Vantage':
           // Test Alpha Vantage connection with provided API key
           const alphaVantageConfig = apiConfigs.find(api => api.name === 'Alpha Vantage')
@@ -163,11 +165,11 @@ export default function ApiConfigPage() {
           const alphaVantageResult = await alphaVantageService.testConnection(alphaVantageKey)
 
           testResult = alphaVantageResult.success
-            ? `✅ Alpha Vantage API Connected Successfully!\n${alphaVantageResult.message}\nData: ${JSON.stringify(alphaVantageResult.data, null, 2)}`
-            : `❌ Alpha Vantage API Connection Failed\n${alphaVantageResult.message}`
+            ? `✅ API is working! Ready to connect.\n${alphaVantageResult.message}`
+            : `❌ API test failed\n${alphaVantageResult.message}`
 
           setApiConfigs(prev => prev.map(api =>
-            api.name === apiName ? { ...api, status: alphaVantageResult.success ? 'connected' : 'disconnected' } : api
+            api.name === apiName ? { ...api, status: 'tested', isWorking: alphaVantageResult.success } : api
           ))
           break
 
@@ -175,10 +177,10 @@ export default function ApiConfigPage() {
           console.log('🔄 Testing NSE India API connection...')
           const nseResult = await nseApiService.testConnection()
           testResult = nseResult.success
-            ? `✅ NSE API Connected Successfully!\n${nseResult.message}\nData: ${JSON.stringify(nseResult.data, null, 2)}`
-            : `❌ NSE API Connection Failed\n${nseResult.message}`
+            ? `✅ API is working! Ready to connect.\n${nseResult.message}`
+            : `❌ API test failed\n${nseResult.message}`
           setApiConfigs(prev => prev.map(api =>
-            api.name === apiName ? { ...api, status: nseResult.success ? 'connected' : 'disconnected' } : api
+            api.name === apiName ? { ...api, status: 'tested', isWorking: nseResult.success } : api
           ))
           break
 
@@ -187,29 +189,29 @@ export default function ApiConfigPage() {
           console.log('🔄 Testing BSE India API connection...')
           const bseResult = await nseApiService.testConnection()
           testResult = bseResult.success
-            ? `✅ BSE API Connected Successfully!\n${bseResult.message}\n(Using NSE-compatible endpoints)`
-            : `❌ BSE API Connection Failed\n${bseResult.message}`
+            ? `✅ API is working! Ready to connect.\n${bseResult.message}`
+            : `❌ API test failed\n${bseResult.message}`
           setApiConfigs(prev => prev.map(api =>
-            api.name === apiName ? { ...api, status: bseResult.success ? 'connected' : 'disconnected' } : api
+            api.name === apiName ? { ...api, status: 'tested', isWorking: bseResult.success } : api
           ))
           break
 
         default:
-          testResult = 'API test not implemented yet'
+          testResult = '❌ API test not implemented yet'
           setApiConfigs(prev => prev.map(api =>
-            api.name === apiName ? { ...api, status: 'disconnected' } : api
+            api.name === apiName ? { ...api, status: 'tested', isWorking: false } : api
           ))
       }
-      
+
       setTestResults(prev => ({ ...prev, [apiName]: testResult }))
-      
+
     } catch (error) {
-      setTestResults(prev => ({ 
-        ...prev, 
-        [apiName]: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      setTestResults(prev => ({
+        ...prev,
+        [apiName]: `❌ Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       }))
-      setApiConfigs(prev => prev.map(api => 
-        api.name === apiName ? { ...api, status: 'disconnected' } : api
+      setApiConfigs(prev => prev.map(api =>
+        api.name === apiName ? { ...api, status: 'tested', isWorking: false } : api
       ))
     }
   }
@@ -231,6 +233,14 @@ export default function ApiConfigPage() {
         console.error('❌ Failed to save Alpha Vantage key:', error)
       }
     }
+  }
+
+  const connectApi = (apiName: string) => {
+    setApiConfigs(prev => prev.map(api =>
+      api.name === apiName ? { ...api, status: 'connected' } : api
+    ))
+
+    setTestResults(prev => ({ ...prev, [apiName]: `✅ ${apiName} API connected successfully!` }))
   }
 
   const disconnectApi = (apiName: string) => {
@@ -262,20 +272,22 @@ export default function ApiConfigPage() {
     navigator.clipboard.writeText(text)
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string, isWorking?: boolean) => {
     switch (status) {
       case 'connected': return <CheckCircle className="h-5 w-5 text-green-400" />
       case 'disconnected': return <XCircle className="h-5 w-5 text-red-400" />
       case 'testing': return <AlertTriangle className="h-5 w-5 text-yellow-400 animate-pulse" />
+      case 'tested': return isWorking ? <CheckCircle className="h-5 w-5 text-blue-400" /> : <XCircle className="h-5 w-5 text-red-400" />
       default: return <XCircle className="h-5 w-5 text-gray-400" />
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, isWorking?: boolean) => {
     switch (status) {
       case 'connected': return 'text-green-400'
       case 'disconnected': return 'text-red-400'
       case 'testing': return 'text-yellow-400'
+      case 'tested': return isWorking ? 'text-blue-400' : 'text-red-400'
       default: return 'text-gray-400'
     }
   }
@@ -334,14 +346,28 @@ export default function ApiConfigPage() {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <button
-            onClick={() => testApiConnection(api.name)}
-            disabled={api.status === 'testing'}
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white rounded-lg transition-colors"
-          >
-            {api.status === 'testing' ? 'Testing...' : 'Test Connection'}
-          </button>
+          {/* Test Button */}
+          {(api.status === 'disconnected' || api.status === 'tested' || api.status === 'testing') && (
+            <button
+              onClick={() => testApiConnection(api.name)}
+              disabled={api.status === 'testing'}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white rounded-lg transition-colors"
+            >
+              {api.status === 'testing' ? 'Testing...' : 'Test API'}
+            </button>
+          )}
 
+          {/* Connect Button */}
+          {api.status === 'tested' && api.isWorking && (
+            <button
+              onClick={() => connectApi(api.name)}
+              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+            >
+              Connect
+            </button>
+          )}
+
+          {/* Disconnect Button */}
           {api.status === 'connected' && (
             <button
               onClick={() => disconnectApi(api.name)}
@@ -482,10 +508,20 @@ export default function ApiConfigPage() {
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    {getStatusIcon(api.status)}
-                    <span className={`text-sm font-medium ${getStatusColor(api.status)}`}>
-                      {api.status.charAt(0).toUpperCase() + api.status.slice(1)}
-                    </span>
+                    {getStatusIcon(api.status, api.isWorking)}
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-sm font-medium ${getStatusColor(api.status, api.isWorking)}`}>
+                        {api.status === 'tested' && api.isWorking ? 'Ready to Connect' :
+                         api.status === 'tested' && !api.isWorking ? 'Test Failed' :
+                         api.status === 'connected' ? 'Connected' :
+                         api.status === 'testing' ? 'Testing...' : 'Disconnected'}
+                      </span>
+                      {api.status === 'connected' && (
+                        <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">
+                          CONNECTED
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -534,10 +570,20 @@ export default function ApiConfigPage() {
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    {getStatusIcon(api.status)}
-                    <span className={`text-sm font-medium ${getStatusColor(api.status)}`}>
-                      {api.status.charAt(0).toUpperCase() + api.status.slice(1)}
-                    </span>
+                    {getStatusIcon(api.status, api.isWorking)}
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-sm font-medium ${getStatusColor(api.status, api.isWorking)}`}>
+                        {api.status === 'tested' && api.isWorking ? 'Ready to Connect' :
+                         api.status === 'tested' && !api.isWorking ? 'Test Failed' :
+                         api.status === 'connected' ? 'Connected' :
+                         api.status === 'testing' ? 'Testing...' : 'Disconnected'}
+                      </span>
+                      {api.status === 'connected' && (
+                        <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">
+                          CONNECTED
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
