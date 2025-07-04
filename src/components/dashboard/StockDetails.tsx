@@ -11,23 +11,106 @@ export default function StockDetails() {
   const { currentMarket, marketConfig } = useMarket()
   const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'analysis'>('overview')
 
-  const stockInfo = {
-    symbol: state.selectedStock,
-    name: 'Apple Inc.',
-    price: 150.25,
-    change: 2.45,
-    changePercent: 1.66,
-    marketCap: 2450000000000,
-    pe: 28.5,
-    eps: 5.27,
-    dividendYield: 0.52,
-    beta: 1.24,
-    high52Week: 182.94,
-    low52Week: 124.17,
-    volume: 45234567,
-    avgVolume: 52345678,
-    sharesOutstanding: 16300000000,
+  const getStockInfo = () => {
+    if (currentMarket === 'indian') {
+      // Indian stock data
+      const indianStocks: Record<string, any> = {
+        'RELIANCE': {
+          symbol: 'RELIANCE',
+          name: 'Reliance Industries Limited',
+          price: 2456.75,
+          change: 45.30,
+          changePercent: 1.88,
+          marketCap: 16600000000000, // 16.6 Lakh Crores
+          pe: 12.8,
+          eps: 192.5,
+          dividendYield: 0.35,
+          beta: 1.15,
+          high52Week: 2856.50,
+          low52Week: 2220.30,
+          volume: 8234567,
+          avgVolume: 9345678,
+          sharesOutstanding: 6765000000,
+        },
+        'TCS': {
+          symbol: 'TCS',
+          name: 'Tata Consultancy Services Limited',
+          price: 3567.20,
+          change: -23.45,
+          changePercent: -0.65,
+          marketCap: 13000000000000, // 13 Lakh Crores
+          pe: 28.5,
+          eps: 125.3,
+          dividendYield: 1.2,
+          beta: 0.85,
+          high52Week: 4150.00,
+          low52Week: 3200.00,
+          volume: 1234567,
+          avgVolume: 1845678,
+          sharesOutstanding: 3650000000,
+        },
+        'HDFCBANK': {
+          symbol: 'HDFCBANK',
+          name: 'HDFC Bank Limited',
+          price: 1634.50,
+          change: 28.75,
+          changePercent: 1.79,
+          marketCap: 12400000000000, // 12.4 Lakh Crores
+          pe: 18.2,
+          eps: 89.8,
+          dividendYield: 1.1,
+          beta: 1.05,
+          high52Week: 1795.00,
+          low52Week: 1363.55,
+          volume: 5234567,
+          avgVolume: 6345678,
+          sharesOutstanding: 7580000000,
+        }
+      }
+      return indianStocks[state.selectedStock] || indianStocks['RELIANCE']
+    } else {
+      // World stock data
+      const worldStocks: Record<string, any> = {
+        'AAPL': {
+          symbol: 'AAPL',
+          name: 'Apple Inc.',
+          price: 150.25,
+          change: 2.45,
+          changePercent: 1.66,
+          marketCap: 2450000000000,
+          pe: 28.5,
+          eps: 5.27,
+          dividendYield: 0.52,
+          beta: 1.24,
+          high52Week: 182.94,
+          low52Week: 124.17,
+          volume: 45234567,
+          avgVolume: 52345678,
+          sharesOutstanding: 16300000000,
+        },
+        'GOOGL': {
+          symbol: 'GOOGL',
+          name: 'Alphabet Inc.',
+          price: 2800.50,
+          change: -15.30,
+          changePercent: -0.54,
+          marketCap: 1750000000000,
+          pe: 25.8,
+          eps: 108.5,
+          dividendYield: 0.0,
+          beta: 1.12,
+          high52Week: 3030.93,
+          low52Week: 2193.62,
+          volume: 25234567,
+          avgVolume: 28345678,
+          sharesOutstanding: 12800000000,
+        }
+      }
+      return worldStocks[state.selectedStock] || worldStocks['AAPL']
+    }
   }
+
+  const stockInfo = getStockInfo()
 
   const financials = {
     revenue: 394328000000,

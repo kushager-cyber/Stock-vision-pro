@@ -226,27 +226,23 @@ class StockApiService {
   }
 
   private shouldUseRealData(): boolean {
+    // Always try to use real data first
+    return true
+
+    // Fallback logic (commented out to prioritize real data)
     // Check localStorage for user preference
-    if (typeof window !== 'undefined') {
-      const config = localStorage.getItem('stockvision_api_config')
-      if (config) {
-        try {
-          const parsed = JSON.parse(config)
-          return parsed.useRealData === true
-        } catch (e) {
-          return false
-        }
-      }
-
-      // Check global config
-      const globalConfig = (window as any).STOCKVISION_CONFIG
-      if (globalConfig) {
-        return globalConfig.useRealData === true
-      }
-    }
-
-    // Default to mock data for demo
-    return false
+    // if (typeof window !== 'undefined') {
+    //   const config = localStorage.getItem('stockvision_api_config')
+    //   if (config) {
+    //     try {
+    //       const parsed = JSON.parse(config)
+    //       return parsed.useRealData === true
+    //     } catch (e) {
+    //       return true // Default to real data
+    //     }
+    //   }
+    // }
+    // return true // Default to real data
   }
 
   async getChartData(symbol: string, timeframe: string, market?: 'world' | 'indian'): Promise<ChartData[]> {

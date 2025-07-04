@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Brain, TrendingUp, TrendingDown, Target, Zap, Clock } from 'lucide-react'
 import { useStock } from '@/contexts/StockContext'
+import { useMarket } from '@/contexts/MarketContext'
 import { motion } from 'framer-motion'
 
 export default function PredictionPanel() {

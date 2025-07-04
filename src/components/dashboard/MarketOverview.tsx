@@ -3,9 +3,16 @@
 import { TrendingUp, TrendingDown, Activity, DollarSign } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useMarket } from '@/contexts/MarketContext'
+import RealTimeIndicator from '@/components/ui/RealTimeIndicator'
+import { useState, useEffect } from 'react'
+import { stockApi } from '@/services/stockApi'
 
 export default function MarketOverview() {
   const { currentMarket, marketConfig } = useMarket()
+  const [isLoadingRealData, setIsLoadingRealData] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState<number>(Date.now())
+  const [realTimeData, setRealTimeData] = useState<any[]>([])
+  const [isConnected, setIsConnected] = useState(true)
 
   const worldMarketData = [
     {
@@ -77,7 +84,61 @@ export default function MarketOverview() {
     },
   ]
 
-  const marketData = currentMarket === 'indian' ? indianMarketData : worldMarketData
+  // Use real-time data if available, otherwise fallback to static data
+  const marketData = realTimeData.length > 0 ? realTimeData : (currentMarket === 'indian' ? indianMarketData : worldMarketData)
+
+  // Fetch real-time market data
+  useEffect(() => {
+    const fetchRealTimeMarketData = async () => {
+      setIsLoadingRealData(true)
+
+      try {
+        const symbols = currentMarket === 'indian'
+          ? ['NIFTY', 'SENSEX', 'BANKNIFTY', 'INDIAVIX']
+          : ['SPY', 'QQQ', 'DIA', 'VIX'] // ETFs that track major indices
+
+        console.log(`🔄 Fetching real-time market data for ${currentMarket} market...`)
+
+        const realTimeMarketData = await Promise.all(
+          symbols.map(async (symbol, index) => {
+            try {
+              const stockData = await stockApi.getStockData(symbol, currentMarket)
+              const fallbackData = currentMarket === 'indian' ? indianMarketData[index] : worldMarketData[index]
+
+              return {
+                name: fallbackData.name,
+                symbol: symbol,
+                value: stockData.price,
+                change: stockData.change,
+                changePercent: stockData.changePercent,
+                icon: stockData.changePercent >= 0 ? TrendingUp : TrendingDown,
+              }
+            } catch (error) {
+              console.warn(`❌ Failed to fetch real-time data for ${symbol}, using fallback`)
+              return currentMarket === 'indian' ? indianMarketData[index] : worldMarketData[index]
+            }
+          })
+        )
+
+        setRealTimeData(realTimeMarketData)
+        setLastUpdate(Date.now())
+        setIsConnected(true)
+        console.log(`✅ Real-time market data updated for ${currentMarket} market`)
+
+      } catch (error) {
+        console.error('❌ Failed to fetch real-time market data:', error)
+        setIsConnected(false)
+      }
+
+      setIsLoadingRealData(false)
+    }
+
+    fetchRealTimeMarketData()
+
+    // Update every 30 seconds
+    const interval = setInterval(fetchRealTimeMarketData, 30000)
+    return () => clearInterval(interval)
+  }, [currentMarket])
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat(currentMarket === 'indian' ? 'en-IN' : 'en-US', {
@@ -100,10 +161,11 @@ export default function MarketOverview() {
             {currentMarket === 'indian' ? 'Indian Markets' : 'Global Markets'} • {marketConfig.currency}
           </p>
         </div>
-        <div className="flex items-center space-x-2 text-sm text-gray-400">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span>Live Data</span>
-        </div>
+        <RealTimeIndicator
+          isConnected={isConnected}
+          lastUpdate={lastUpdate}
+          dataSource={currentMarket === 'indian' ? 'NSE/BSE' : 'Yahoo Finance'}
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

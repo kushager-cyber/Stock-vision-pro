@@ -72,7 +72,7 @@ export default function MarketToggle({ currentMarket, onMarketChange }: MarketTo
           exit={{ opacity: 0, y: 10 }}
           className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50"
         >
-          <div className="glass rounded-lg p-3 border border-white/10 shadow-xl min-w-max">
+          <div className="glass-dropdown rounded-lg p-3 min-w-max">
             <div className="space-y-2">
               {markets.map((market) => {
                 const Icon = market.icon

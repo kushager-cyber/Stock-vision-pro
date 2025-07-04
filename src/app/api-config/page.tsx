@@ -47,6 +47,22 @@ export default function ApiConfigPage() {
       website: 'https://finance.yahoo.com'
     },
     {
+      name: 'NSE India',
+      key: 'No API key required',
+      status: 'connected',
+      description: 'Free access to NSE (National Stock Exchange) India data',
+      freeLimit: 'Unlimited (rate limited)',
+      website: 'https://www.nseindia.com'
+    },
+    {
+      name: 'BSE India',
+      key: 'No API key required',
+      status: 'connected',
+      description: 'Free access to BSE (Bombay Stock Exchange) India data',
+      freeLimit: 'Unlimited (rate limited)',
+      website: 'https://www.bseindia.com'
+    },
+    {
       name: 'IEX Cloud',
       key: '',
       status: 'disconnected',

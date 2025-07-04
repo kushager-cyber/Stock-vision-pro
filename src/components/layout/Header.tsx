@@ -140,7 +140,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
 
                     {/* Notification Dropdown */}
-                    <div className="absolute right-0 mt-2 w-80 glass rounded-lg shadow-xl border border-white/10 z-[60] max-h-96 overflow-y-auto">
+                    <div className="absolute right-0 mt-2 w-80 glass-dropdown rounded-lg z-[60] max-h-96 overflow-y-auto">
                       <div className="p-4">
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="text-lg font-semibold text-white">Notifications</h3>

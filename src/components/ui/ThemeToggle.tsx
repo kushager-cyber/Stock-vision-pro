@@ -56,7 +56,7 @@ export default function ThemeToggle() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute right-0 mt-2 w-72 glass rounded-lg shadow-xl border border-white/10 z-[60] overflow-hidden"
+              className="absolute right-0 mt-2 w-72 glass-dropdown rounded-lg z-[60] overflow-hidden"
             >
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Header from '@/components/layout/Header'
 import Sidebar from '@/components/layout/Sidebar'
-import Dashboard from '@/components/dashboard/Dashboard'
+import MarketAwareDashboard from '@/components/dashboard/MarketAwareDashboard'
 import TickerTape from '@/components/ticker/TickerTape'
 import DataModeIndicator from '@/components/ui/DataModeIndicator'
 import { StockProvider } from '@/contexts/StockContext'
@@ -44,7 +44,7 @@ export default function Home() {
           <main className={`flex-1 transition-all duration-300 ${
             sidebarOpen ? 'lg:ml-64' : ''
           }`}>
-            <Dashboard />
+            <MarketAwareDashboard />
           </main>
         </div>
 
