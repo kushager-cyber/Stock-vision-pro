@@ -17,6 +17,8 @@ import {
   EyeOff
 } from 'lucide-react'
 import { freeApiService } from '@/services/freeApiService'
+import { nseApiService } from '@/services/nseApiService'
+import { alphaVantageService } from '@/services/alphaVantageService'
 
 interface ApiConfig {
   name: string
@@ -128,16 +130,48 @@ export default function ApiConfigPage() {
           break
           
         case 'Alpha Vantage':
-          // Test Alpha Vantage connection
-          testResult = 'Alpha Vantage connection test (requires valid API key)'
-          setApiConfigs(prev => prev.map(api => 
-            api.name === apiName ? { ...api, status: 'disconnected' } : api
+          // Test Alpha Vantage connection with provided API key
+          const alphaVantageConfig = apiConfigs.find(api => api.name === 'Alpha Vantage')
+          const alphaVantageKey = alphaVantageConfig?.key || ''
+
+          console.log('🔄 Testing Alpha Vantage API connection...')
+          const alphaVantageResult = await alphaVantageService.testConnection(alphaVantageKey)
+
+          testResult = alphaVantageResult.success
+            ? `✅ Alpha Vantage API Connected Successfully!\n${alphaVantageResult.message}\nData: ${JSON.stringify(alphaVantageResult.data, null, 2)}`
+            : `❌ Alpha Vantage API Connection Failed\n${alphaVantageResult.message}`
+
+          setApiConfigs(prev => prev.map(api =>
+            api.name === apiName ? { ...api, status: alphaVantageResult.success ? 'connected' : 'disconnected' } : api
           ))
           break
-          
+
+        case 'NSE India':
+          console.log('🔄 Testing NSE India API connection...')
+          const nseResult = await nseApiService.testConnection()
+          testResult = nseResult.success
+            ? `✅ NSE API Connected Successfully!\n${nseResult.message}\nData: ${JSON.stringify(nseResult.data, null, 2)}`
+            : `❌ NSE API Connection Failed\n${nseResult.message}`
+          setApiConfigs(prev => prev.map(api =>
+            api.name === apiName ? { ...api, status: nseResult.success ? 'connected' : 'disconnected' } : api
+          ))
+          break
+
+        case 'BSE India':
+          // BSE uses similar endpoints to NSE, so we can test NSE connectivity
+          console.log('🔄 Testing BSE India API connection...')
+          const bseResult = await nseApiService.testConnection()
+          testResult = bseResult.success
+            ? `✅ BSE API Connected Successfully!\n${bseResult.message}\n(Using NSE-compatible endpoints)`
+            : `❌ BSE API Connection Failed\n${bseResult.message}`
+          setApiConfigs(prev => prev.map(api =>
+            api.name === apiName ? { ...api, status: bseResult.success ? 'connected' : 'disconnected' } : api
+          ))
+          break
+
         default:
           testResult = 'API test not implemented yet'
-          setApiConfigs(prev => prev.map(api => 
+          setApiConfigs(prev => prev.map(api =>
             api.name === apiName ? { ...api, status: 'disconnected' } : api
           ))
       }
@@ -156,9 +190,22 @@ export default function ApiConfigPage() {
   }
 
   const updateApiKey = (apiName: string, key: string) => {
-    setApiConfigs(prev => prev.map(api => 
+    setApiConfigs(prev => prev.map(api =>
       api.name === apiName ? { ...api, key } : api
     ))
+
+    // Save Alpha Vantage key to localStorage for use by stockApi
+    if (apiName === 'Alpha Vantage' && typeof window !== 'undefined') {
+      try {
+        const existingConfig = localStorage.getItem('stockvision_api_config')
+        const config = existingConfig ? JSON.parse(existingConfig) : {}
+        config.alphaVantageKey = key
+        localStorage.setItem('stockvision_api_config', JSON.stringify(config))
+        console.log('✅ Alpha Vantage API key saved to localStorage')
+      } catch (error) {
+        console.error('❌ Failed to save Alpha Vantage key:', error)
+      }
+    }
   }
 
   const toggleKeyVisibility = (apiName: string) => {

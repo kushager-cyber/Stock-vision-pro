@@ -3,6 +3,7 @@ import { StockData, NewsItem, ChartData, SearchResult } from '@/types/stock'
 import { realTimeDataService } from './realTimeDataService'
 import { freeApiService } from './freeApiService'
 import { indianStockApi } from './indianStockApi'
+import { alphaVantageService } from './alphaVantageService'
 
 // Enhanced API service with real-time data integration
 class StockApiService {
@@ -175,7 +176,18 @@ class StockApiService {
       const useRealData = this.shouldUseRealData()
 
       if (useRealData) {
-        // Try free API service first (Yahoo Finance, Alpha Vantage, etc.)
+        // Try Alpha Vantage first if API key is available
+        try {
+          const alphaVantageKey = this.getAlphaVantageKey()
+          if (alphaVantageKey) {
+            console.log(`Trying Alpha Vantage for ${symbol}...`)
+            return await alphaVantageService.getStockData(symbol, alphaVantageKey)
+          }
+        } catch (alphaVantageError) {
+          console.warn('Alpha Vantage failed, trying free API service:', alphaVantageError)
+        }
+
+        // Try free API service (Yahoo Finance, etc.)
         try {
           console.log(`Fetching real data for ${symbol}...`)
           return await freeApiService.getStockData(symbol)
@@ -243,6 +255,21 @@ class StockApiService {
     //   }
     // }
     // return true // Default to real data
+  }
+
+  private getAlphaVantageKey(): string | null {
+    if (typeof window !== 'undefined') {
+      try {
+        const config = localStorage.getItem('stockvision_api_config')
+        if (config) {
+          const parsed = JSON.parse(config)
+          return parsed.alphaVantageKey || null
+        }
+      } catch (e) {
+        console.warn('Failed to parse API config from localStorage')
+      }
+    }
+    return null
   }
 
   async getChartData(symbol: string, timeframe: string, market?: 'world' | 'indian'): Promise<ChartData[]> {

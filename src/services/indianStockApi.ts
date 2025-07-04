@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { StockData, NewsItem, ChartData, SearchResult } from '@/types/stock'
+import { nseApiService } from './nseApiService'
 
 // Indian Stock API Service for NSE/BSE data
 class IndianStockApiService {
@@ -49,7 +50,20 @@ class IndianStockApiService {
     if (cached) return cached
 
     try {
-      // Try Yahoo Finance for Indian stocks first
+      // Try NSE API service first for Indian stocks
+      console.log(`🔄 Trying NSE API for ${symbol}...`)
+      const nseData = await nseApiService.getStockData(symbol)
+      if (nseData) {
+        this.setCachedData(cacheKey, nseData)
+        console.log(`✅ NSE API data fetched successfully for ${symbol}`)
+        return nseData
+      }
+    } catch (error) {
+      console.warn(`❌ NSE API failed for ${symbol}, trying Yahoo Finance...`, error)
+    }
+
+    try {
+      // Fallback to Yahoo Finance for Indian stocks
       const yahooSymbol = this.formatSymbolForYahoo(symbol)
       const response = await axios.get(`${this.YAHOO_FINANCE_BASE}/${yahooSymbol}`, {
         timeout: 8000,
