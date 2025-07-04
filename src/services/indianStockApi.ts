@@ -169,7 +169,7 @@ class IndianStockApiService {
     ]
 
     return indianStocks
-      .filter(stock => 
+      .filter(stock =>
         stock.symbol.toLowerCase().includes(query.toLowerCase()) ||
         stock.name.toLowerCase().includes(query.toLowerCase())
       )
@@ -178,7 +178,8 @@ class IndianStockApiService {
         symbol: stock.symbol,
         name: stock.name,
         exchange: stock.exchange,
-        type: 'stock'
+        type: 'stock' as const,
+        currency: 'INR'
       }))
   }
 
@@ -191,9 +192,10 @@ class IndianStockApiService {
         summary: 'Indian benchmark indices reached record levels driven by strong performance in technology sector.',
         url: '#',
         source: 'Economic Times',
-        publishedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-        sentiment: 0.8,
-        relevanceScore: 0.9
+        publishedAt: Date.now() - 1000 * 60 * 30,
+        sentiment: 'positive',
+        relevantSymbols: ['SENSEX', 'NIFTY', 'TCS', 'INFY'],
+        sentimentScore: 0.8
       },
       {
         id: '2',
@@ -201,9 +203,10 @@ class IndianStockApiService {
         summary: 'Reserve Bank of India keeps key interest rates unchanged in latest monetary policy review.',
         url: '#',
         source: 'Business Standard',
-        publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        sentiment: 0.2,
-        relevanceScore: 0.8
+        publishedAt: Date.now() - 1000 * 60 * 60 * 2,
+        sentiment: 'neutral',
+        relevantSymbols: ['BANKNIFTY', 'HDFCBANK', 'ICICIBANK'],
+        sentimentScore: 0.2
       },
       {
         id: '3',
@@ -211,9 +214,10 @@ class IndianStockApiService {
         summary: 'FII inflows continue as global investors show confidence in Indian market fundamentals.',
         url: '#',
         source: 'Mint',
-        publishedAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-        sentiment: 0.6,
-        relevanceScore: 0.7
+        publishedAt: Date.now() - 1000 * 60 * 60 * 4,
+        sentiment: 'positive',
+        relevantSymbols: ['NIFTY', 'SENSEX'],
+        sentimentScore: 0.6
       }
     ]
 
