@@ -14,78 +14,8 @@ export default function MarketOverview() {
   const [realTimeData, setRealTimeData] = useState<any[]>([])
   const [isConnected, setIsConnected] = useState(true)
 
-  const worldMarketData = [
-    {
-      name: 'S&P 500',
-      symbol: 'SPX',
-      value: 4567.89,
-      change: 23.45,
-      changePercent: 0.52,
-      icon: TrendingUp,
-    },
-    {
-      name: 'NASDAQ',
-      symbol: 'IXIC',
-      value: 14234.56,
-      change: -45.67,
-      changePercent: -0.32,
-      icon: TrendingDown,
-    },
-    {
-      name: 'Dow Jones',
-      symbol: 'DJI',
-      value: 34567.12,
-      change: 156.78,
-      changePercent: 0.45,
-      icon: TrendingUp,
-    },
-    {
-      name: 'VIX',
-      symbol: 'VIX',
-      value: 18.45,
-      change: -1.23,
-      changePercent: -6.25,
-      icon: Activity,
-    },
-  ]
-
-  const indianMarketData = [
-    {
-      name: 'NIFTY 50',
-      symbol: 'NIFTY',
-      value: 19845.65,
-      change: 125.30,
-      changePercent: 0.63,
-      icon: TrendingUp,
-    },
-    {
-      name: 'SENSEX',
-      symbol: 'SENSEX',
-      value: 66589.93,
-      change: -89.45,
-      changePercent: -0.13,
-      icon: TrendingDown,
-    },
-    {
-      name: 'BANK NIFTY',
-      symbol: 'BANKNIFTY',
-      value: 45234.78,
-      change: 234.56,
-      changePercent: 0.52,
-      icon: TrendingUp,
-    },
-    {
-      name: 'INDIA VIX',
-      symbol: 'INDIAVIX',
-      value: 13.45,
-      change: -0.85,
-      changePercent: -5.95,
-      icon: Activity,
-    },
-  ]
-
-  // Use real-time data if available, otherwise fallback to static data
-  const marketData = realTimeData.length > 0 ? realTimeData : (currentMarket === 'indian' ? indianMarketData : worldMarketData)
+  // Only use real-time data - no static fallbacks
+  const marketData = realTimeData
 
   // Fetch real-time market data
   useEffect(() => {
@@ -100,13 +30,24 @@ export default function MarketOverview() {
         console.log(`🔄 Fetching real-time market data for ${currentMarket} market...`)
 
         const realTimeMarketData = await Promise.all(
-          symbols.map(async (symbol, index) => {
+          symbols.map(async (symbol) => {
             try {
               const stockData = await stockApi.getStockData(symbol, currentMarket)
-              const fallbackData = currentMarket === 'indian' ? indianMarketData[index] : worldMarketData[index]
+
+              // Map symbol to display name
+              const nameMap: Record<string, string> = {
+                'SPY': 'S&P 500',
+                'QQQ': 'NASDAQ',
+                'DIA': 'Dow Jones',
+                'VIX': 'VIX',
+                'NIFTY': 'NIFTY 50',
+                'SENSEX': 'SENSEX',
+                'BANKNIFTY': 'BANK NIFTY',
+                'INDIAVIX': 'INDIA VIX'
+              }
 
               return {
-                name: fallbackData.name,
+                name: nameMap[symbol] || stockData.name,
                 symbol: symbol,
                 value: stockData.price,
                 change: stockData.change,
@@ -114,16 +55,18 @@ export default function MarketOverview() {
                 icon: stockData.changePercent >= 0 ? TrendingUp : TrendingDown,
               }
             } catch (error) {
-              console.warn(`❌ Failed to fetch real-time data for ${symbol}, using fallback`)
-              return currentMarket === 'indian' ? indianMarketData[index] : worldMarketData[index]
+              console.warn(`❌ Failed to fetch real-time data for ${symbol}`)
+              return null
             }
           })
         )
 
-        setRealTimeData(realTimeMarketData)
+        // Filter out failed fetches
+        const validData = realTimeMarketData.filter(item => item !== null)
+        setRealTimeData(validData)
         setLastUpdate(Date.now())
-        setIsConnected(true)
-        console.log(`✅ Real-time market data updated for ${currentMarket} market`)
+        setIsConnected(validData.length > 0)
+        console.log(`✅ Real-time market data updated for ${currentMarket} market (${validData.length}/${symbols.length} successful)`)
 
       } catch (error) {
         console.error('❌ Failed to fetch real-time market data:', error)
@@ -168,8 +111,24 @@ export default function MarketOverview() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {marketData.map((item, index) => {
+      {isLoadingRealData ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="glass rounded-lg p-4 animate-pulse">
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-4 bg-gray-600 rounded w-20"></div>
+                <div className="h-5 w-5 bg-gray-600 rounded"></div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-6 bg-gray-600 rounded w-24"></div>
+                <div className="h-4 bg-gray-600 rounded w-16"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : marketData.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {marketData.map((item, index) => {
           const Icon = item.icon
           const isPositive = item.change >= 0
           
@@ -215,37 +174,21 @@ export default function MarketOverview() {
               </div>
             </motion.div>
           )
-        })}
-      </div>
-
-      {/* Market Summary */}
-      <div className="mt-6 pt-6 border-t border-white/10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <TrendingUp className="h-5 w-5 text-green-400" />
-              <span className="text-sm text-gray-400">Gainers</span>
-            </div>
-            <p className="text-2xl font-bold text-green-400">1,247</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <TrendingDown className="h-5 w-5 text-red-400" />
-              <span className="text-sm text-gray-400">Losers</span>
-            </div>
-            <p className="text-2xl font-bold text-red-400">892</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <DollarSign className="h-5 w-5 text-blue-400" />
-              <span className="text-sm text-gray-400">Volume</span>
-            </div>
-            <p className="text-2xl font-bold text-blue-400">2.4B</p>
+          })}
+        </div>
+      ) : (
+        <div className="glass rounded-lg p-8 text-center">
+          <div className="text-gray-400 mb-4">
+            <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <h3 className="text-lg font-medium">No Market Data Available</h3>
+            <p className="text-sm mt-2">
+              Unable to fetch real-time market data. Please check your API configuration.
+            </p>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Market Summary - Removed static data, will be implemented with real API data later */}
     </div>
   )
 }

@@ -229,15 +229,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <Link
                 href="/api-config"
                 className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-                title="API Configuration"
+                title="API Configuration & Settings"
               >
                 <Settings className="h-6 w-6" />
               </Link>
-
-              {/* Settings */}
-              <button className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
-                <Settings className="h-6 w-6" />
-              </button>
 
               {/* Profile */}
               <button className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 transition-colors">

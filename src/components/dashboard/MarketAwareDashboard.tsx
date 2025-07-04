@@ -64,34 +64,15 @@ export default function MarketAwareDashboard() {
                   changePercent: stockData.changePercent
                 }
               } catch (error) {
-                console.warn(`❌ Failed to fetch real-time data for ${symbol}, using fallback`)
-                // Fallback data
-                const fallbackPrices = {
-                  'AAPL': { name: 'Apple Inc.', price: 150.00, change: 2.50, changePercent: 1.69 },
-                  'GOOGL': { name: 'Alphabet Inc.', price: 2800.00, change: -15.30, changePercent: -0.54 },
-                  'MSFT': { name: 'Microsoft Corp.', price: 330.00, change: 5.20, changePercent: 1.60 },
-                  'TSLA': { name: 'Tesla Inc.', price: 800.00, change: -12.50, changePercent: -1.54 },
-                  'AMZN': { name: 'Amazon.com Inc.', price: 3245.89, change: 25.67, changePercent: 0.80 },
-                  'RELIANCE': { name: 'Reliance Industries Ltd.', price: 2456.75, change: 45.30, changePercent: 1.88 },
-                  'TCS': { name: 'Tata Consultancy Services', price: 3567.20, change: -23.45, changePercent: -0.65 },
-                  'HDFCBANK': { name: 'HDFC Bank Limited', price: 1634.50, change: 28.75, changePercent: 1.79 },
-                  'INFY': { name: 'Infosys Limited', price: 1456.80, change: 15.60, changePercent: 1.08 },
-                  'ICICIBANK': { name: 'ICICI Bank Limited', price: 945.60, change: 18.90, changePercent: 2.04 }
-                }
-                const fallback = fallbackPrices[symbol as keyof typeof fallbackPrices]
-                return {
-                  symbol,
-                  name: fallback?.name || symbol,
-                  price: fallback?.price || 100,
-                  change: fallback?.change || 0,
-                  changePercent: fallback?.changePercent || 0
-                }
+                console.error(`❌ Failed to fetch real-time data for ${symbol}:`, error)
+                // Skip this symbol if API fails - no fallback data
+                return null
               }
             })
           )
 
-          // Add real-time watchlist items
-          realTimeWatchlist.forEach(item => {
+          // Add real-time watchlist items (filter out failed fetches)
+          realTimeWatchlist.filter(item => item !== null).forEach(item => {
             dispatch({ type: 'ADD_TO_WATCHLIST', payload: item })
           })
 

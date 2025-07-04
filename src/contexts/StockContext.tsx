@@ -29,16 +29,8 @@ type StockAction =
 const initialState: StockState = {
   selectedStock: 'AAPL',
   stockData: {},
-  watchlist: [
-    { symbol: 'AAPL', name: 'Apple Inc.', price: 150.00, change: 2.50, changePercent: 1.69 },
-    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 2800.00, change: -15.30, changePercent: -0.54 },
-    { symbol: 'MSFT', name: 'Microsoft Corp.', price: 330.00, change: 5.20, changePercent: 1.60 },
-    { symbol: 'TSLA', name: 'Tesla Inc.', price: 800.00, change: -12.50, changePercent: -1.54 },
-  ],
-  portfolio: [
-    { symbol: 'AAPL', name: 'Apple Inc.', shares: 10, avgPrice: 145.00, currentPrice: 150.00, totalValue: 1500.00, gainLoss: 50.00, gainLossPercent: 3.45 },
-    { symbol: 'GOOGL', name: 'Alphabet Inc.', shares: 2, avgPrice: 2750.00, currentPrice: 2800.00, totalValue: 5600.00, gainLoss: 100.00, gainLossPercent: 1.82 },
-  ],
+  watchlist: [], // Start with empty watchlist - will be populated with real data
+  portfolio: [], // Start with empty portfolio - will be populated with real data
   predictions: {},
   isLoading: false,
   error: null,

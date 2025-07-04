@@ -11,116 +11,28 @@ export default function StockDetails() {
   const { currentMarket, marketConfig } = useMarket()
   const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'analysis'>('overview')
 
-  const getStockInfo = () => {
-    if (currentMarket === 'indian') {
-      // Indian stock data
-      const indianStocks: Record<string, any> = {
-        'RELIANCE': {
-          symbol: 'RELIANCE',
-          name: 'Reliance Industries Limited',
-          price: 2456.75,
-          change: 45.30,
-          changePercent: 1.88,
-          marketCap: 16600000000000, // 16.6 Lakh Crores
-          pe: 12.8,
-          eps: 192.5,
-          dividendYield: 0.35,
-          beta: 1.15,
-          high52Week: 2856.50,
-          low52Week: 2220.30,
-          volume: 8234567,
-          avgVolume: 9345678,
-          sharesOutstanding: 6765000000,
-        },
-        'TCS': {
-          symbol: 'TCS',
-          name: 'Tata Consultancy Services Limited',
-          price: 3567.20,
-          change: -23.45,
-          changePercent: -0.65,
-          marketCap: 13000000000000, // 13 Lakh Crores
-          pe: 28.5,
-          eps: 125.3,
-          dividendYield: 1.2,
-          beta: 0.85,
-          high52Week: 4150.00,
-          low52Week: 3200.00,
-          volume: 1234567,
-          avgVolume: 1845678,
-          sharesOutstanding: 3650000000,
-        },
-        'HDFCBANK': {
-          symbol: 'HDFCBANK',
-          name: 'HDFC Bank Limited',
-          price: 1634.50,
-          change: 28.75,
-          changePercent: 1.79,
-          marketCap: 12400000000000, // 12.4 Lakh Crores
-          pe: 18.2,
-          eps: 89.8,
-          dividendYield: 1.1,
-          beta: 1.05,
-          high52Week: 1795.00,
-          low52Week: 1363.55,
-          volume: 5234567,
-          avgVolume: 6345678,
-          sharesOutstanding: 7580000000,
-        }
-      }
-      return indianStocks[state.selectedStock] || indianStocks['RELIANCE']
-    } else {
-      // World stock data
-      const worldStocks: Record<string, any> = {
-        'AAPL': {
-          symbol: 'AAPL',
-          name: 'Apple Inc.',
-          price: 150.25,
-          change: 2.45,
-          changePercent: 1.66,
-          marketCap: 2450000000000,
-          pe: 28.5,
-          eps: 5.27,
-          dividendYield: 0.52,
-          beta: 1.24,
-          high52Week: 182.94,
-          low52Week: 124.17,
-          volume: 45234567,
-          avgVolume: 52345678,
-          sharesOutstanding: 16300000000,
-        },
-        'GOOGL': {
-          symbol: 'GOOGL',
-          name: 'Alphabet Inc.',
-          price: 2800.50,
-          change: -15.30,
-          changePercent: -0.54,
-          marketCap: 1750000000000,
-          pe: 25.8,
-          eps: 108.5,
-          dividendYield: 0.0,
-          beta: 1.12,
-          high52Week: 3030.93,
-          low52Week: 2193.62,
-          volume: 25234567,
-          avgVolume: 28345678,
-          sharesOutstanding: 12800000000,
-        }
-      }
-      return worldStocks[state.selectedStock] || worldStocks['AAPL']
-    }
+  // Use real stock data from context instead of static data
+  const stockInfo = state.stockData[state.selectedStock] || null
+
+  // Return early if no stock data is available
+  if (!stockInfo) {
+    return (
+      <div className="glass-card">
+        <div className="text-center py-8">
+          <div className="text-gray-400 mb-4">
+            <Info className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <h3 className="text-lg font-medium">No Stock Data Available</h3>
+            <p className="text-sm mt-2">
+              Please select a stock from the watchlist or search for a stock to view details.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  const stockInfo = getStockInfo()
-
-  const financials = {
-    revenue: 394328000000,
-    grossProfit: 170782000000,
-    operatingIncome: 114301000000,
-    netIncome: 99803000000,
-    totalAssets: 352755000000,
-    totalDebt: 123456000000,
-    freeCashFlow: 92953000000,
-  }
+  // TODO: Remove static financials data - should come from API
+  const financials = null // Removed static financial data
 
   const isInWatchlist = state.watchlist.some(item => item.symbol === state.selectedStock)
 
@@ -144,6 +56,18 @@ export default function StockDetails() {
   const formatNumber = (value: number) => {
     return new Intl.NumberFormat(currentMarket === 'indian' ? 'en-IN' : 'en-US').format(value)
   }
+
+  // Helper function to display data with fallback to "-" when not available
+  const displayValue = (value: any, formatter?: (val: any) => string) => {
+    if (value === null || value === undefined || value === 0 || value === '' || value === 'N/A') {
+      return '-'
+    }
+    return formatter ? formatter(value) : value.toString()
+  }
+
+  const displayCurrency = (value: number) => displayValue(value, formatCurrency)
+  const displayNumber = (value: number) => displayValue(value, formatNumber)
+  const displayPercent = (value: number) => displayValue(value, (val) => `${val.toFixed(2)}%`)
 
   const toggleWatchlist = () => {
     if (isInWatchlist) {
@@ -230,64 +154,47 @@ export default function StockDetails() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-1">Market Cap</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(stockInfo.marketCap)}</p>
+              <p className="text-lg font-bold text-white">{displayCurrency(stockInfo.marketCap)}</p>
             </div>
             <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-1">P/E Ratio</p>
-              <p className="text-lg font-bold text-white">{stockInfo.pe}</p>
+              <p className="text-lg font-bold text-white">{displayValue(stockInfo.pe, (val) => val.toFixed(2))}</p>
             </div>
             <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-1">EPS</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(stockInfo.eps)}</p>
+              <p className="text-lg font-bold text-white">{displayValue(stockInfo.eps, (val) => `${marketConfig.currencySymbol}${val.toFixed(2)}`)}</p>
             </div>
             <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-1">Dividend Yield</p>
-              <p className="text-lg font-bold text-white">{stockInfo.dividendYield}%</p>
+              <p className="text-lg font-bold text-white">{displayPercent(stockInfo.dividendYield)}</p>
             </div>
             <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-1">Beta</p>
-              <p className="text-lg font-bold text-white">{stockInfo.beta}</p>
+              <p className="text-lg font-bold text-white">{displayValue(stockInfo.beta, (val) => val.toFixed(2))}</p>
             </div>
             <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-1">52W High</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(stockInfo.high52Week)}</p>
+              <p className="text-lg font-bold text-white">{displayCurrency(stockInfo.high52Week)}</p>
             </div>
             <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-1">52W Low</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(stockInfo.low52Week)}</p>
+              <p className="text-lg font-bold text-white">{displayCurrency(stockInfo.low52Week)}</p>
             </div>
             <div className="glass rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-1">Volume</p>
-              <p className="text-lg font-bold text-white">{formatNumber(stockInfo.volume)}</p>
+              <p className="text-lg font-bold text-white">{displayNumber(stockInfo.volume)}</p>
             </div>
           </div>
         )}
 
         {activeTab === 'financials' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="glass rounded-lg p-4">
-              <p className="text-sm text-gray-400 mb-1">Revenue (TTM)</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(financials.revenue)}</p>
-            </div>
-            <div className="glass rounded-lg p-4">
-              <p className="text-sm text-gray-400 mb-1">Gross Profit</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(financials.grossProfit)}</p>
-            </div>
-            <div className="glass rounded-lg p-4">
-              <p className="text-sm text-gray-400 mb-1">Operating Income</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(financials.operatingIncome)}</p>
-            </div>
-            <div className="glass rounded-lg p-4">
-              <p className="text-sm text-gray-400 mb-1">Net Income</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(financials.netIncome)}</p>
-            </div>
-            <div className="glass rounded-lg p-4">
-              <p className="text-sm text-gray-400 mb-1">Total Assets</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(financials.totalAssets)}</p>
-            </div>
-            <div className="glass rounded-lg p-4">
-              <p className="text-sm text-gray-400 mb-1">Total Debt</p>
-              <p className="text-lg font-bold text-white">{formatCurrency(financials.totalDebt)}</p>
+          <div className="text-center py-8">
+            <div className="text-gray-400">
+              <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <h3 className="text-lg font-medium">Financial Data Coming Soon</h3>
+              <p className="text-sm mt-2">
+                Detailed financial information will be available once comprehensive API integration is complete.
+              </p>
             </div>
           </div>
         )}

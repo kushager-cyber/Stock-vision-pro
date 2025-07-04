@@ -213,11 +213,8 @@ class FreeApiService {
       console.log('Skipping Alpha Vantage (demo key or no key provided)')
     }
 
-    // Final fallback to mock data with realistic values
-    console.log(`All real APIs failed for ${symbol}, using enhanced mock data`)
-    const mockData = this.generateMockStockData(symbol)
-    this.setCachedData(cacheKey, mockData)
-    return mockData
+    // If all real APIs fail, throw error instead of using mock data
+    throw new Error(`Failed to fetch real data for ${symbol}. All API sources unavailable.`)
   }
 
   // Get chart data using Yahoo Finance
@@ -256,8 +253,8 @@ class FreeApiService {
       return chartData
 
     } catch (error) {
-      console.warn('Yahoo Finance chart failed, using mock data:', error)
-      return this.generateMockChartData(symbol, timeframe)
+      console.error('Yahoo Finance chart failed:', error)
+      throw new Error(`Failed to fetch real chart data for ${symbol}. Yahoo Finance API unavailable.`)
     }
   }
 
@@ -413,96 +410,9 @@ class FreeApiService {
     return companies[symbol] || `${symbol} Corporation`
   }
 
-  private generateMockStockData(symbol: string): StockData {
-    // Create more realistic mock data based on symbol
-    const isIndianStock = symbol.includes('.NS') || symbol.includes('.BO')
-    const isLargeCap = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'RELIANCE.NS', 'TCS.NS'].includes(symbol)
+  // Removed mock data generation - only real API data allowed
 
-    // Base price ranges
-    let basePrice: number
-    if (isLargeCap) {
-      basePrice = Math.random() * 2000 + 500 // $500-$2500 or ₹500-₹2500
-    } else if (isIndianStock) {
-      basePrice = Math.random() * 1000 + 100 // ₹100-₹1100
-    } else {
-      basePrice = Math.random() * 500 + 50 // $50-$550
-    }
-
-    // Realistic daily change (typically -5% to +5%)
-    const changePercent = (Math.random() - 0.5) * 10 // -5% to +5%
-    const change = (basePrice * changePercent) / 100
-
-    // Market cap based on price and company size
-    let marketCap: number
-    if (isLargeCap) {
-      marketCap = (Math.random() * 2000 + 500) * 1000000000 // $500B - $2.5T
-    } else {
-      marketCap = (Math.random() * 100 + 10) * 1000000000 // $10B - $110B
-    }
-
-    // Volume based on market cap
-    const volume = Math.floor((marketCap / 1000000000) * Math.random() * 5000000 + 1000000)
-
-    return {
-      symbol,
-      name: this.getCompanyName(symbol),
-      price: Math.round(basePrice * 100) / 100,
-      change: Math.round(change * 100) / 100,
-      changePercent: Math.round(changePercent * 100) / 100,
-      volume,
-      marketCap,
-      pe: Math.random() * 30 + 10, // PE ratio 10-40
-      high52Week: basePrice * (1 + Math.random() * 0.4 + 0.1), // 10-50% higher
-      low52Week: basePrice * (1 - Math.random() * 0.3 - 0.05), // 5-35% lower
-      dividendYield: Math.random() * 4, // 0-4% dividend yield
-      beta: Math.random() * 1.5 + 0.5, // Beta 0.5-2.0
-      eps: Math.random() * 20 + 2, // EPS $2-$22
-      timestamp: Date.now(),
-      avgVolume: Math.floor(volume * (0.8 + Math.random() * 0.4)), // ±20% of current volume
-      revenue: marketCap * (0.5 + Math.random() * 1.5), // Revenue estimate
-      grossProfit: 0,
-      operatingIncome: 0,
-      netIncome: 0,
-      totalAssets: 0,
-      totalDebt: 0,
-      debtToEquity: Math.random() * 2, // 0-2 debt to equity
-      roe: Math.random() * 25 + 5, // 5-30% ROE
-      roa: Math.random() * 15 + 2, // 2-17% ROA
-      currentRatio: Math.random() * 2 + 1, // 1-3 current ratio
-      quickRatio: Math.random() * 1.5 + 0.5, // 0.5-2 quick ratio
-      priceToBook: Math.random() * 5 + 1, // 1-6 P/B ratio
-      priceToSales: Math.random() * 10 + 1, // 1-11 P/S ratio
-      forwardPE: Math.random() * 25 + 8, // 8-33 forward PE
-      pegRatio: Math.random() * 3 + 0.5, // 0.5-3.5 PEG ratio
-      analystRating: (['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'] as const)[Math.floor(Math.random() * 5)],
-      analystTargetPrice: basePrice * (0.9 + Math.random() * 0.3), // ±15% target
-      riskLevel: (['Low', 'Medium', 'High', 'Very High'] as const)[Math.floor(Math.random() * 4)],
-      socialSentiment: (Math.random() - 0.5) * 2 // -1 to +1
-    }
-  }
-
-  private generateMockChartData(symbol: string, timeframe: string): ChartData[] {
-    const periods = 30
-    const data: ChartData[] = []
-    let currentPrice = Math.random() * 1000 + 50
-    const now = Date.now()
-
-    for (let i = periods; i >= 0; i--) {
-      const timestamp = Math.floor((now - (i * 86400000)) / 1000) // Daily intervals
-      const volatility = Math.random() * 0.04 - 0.02
-      
-      const open = currentPrice
-      const high = open * (1 + Math.random() * 0.03)
-      const low = open * (1 - Math.random() * 0.03)
-      const close = low + Math.random() * (high - low)
-      const volume = Math.floor(Math.random() * 10000000)
-
-      data.push({ timestamp, open, high, low, close, volume })
-      currentPrice = close
-    }
-
-    return data
-  }
+  // Removed mock chart data generation - only real API data allowed
 
   private getFallbackSearchResults(query: string): SearchResult[] {
     const fallbackStocks = [
