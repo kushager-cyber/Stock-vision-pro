@@ -1,9 +1,12 @@
 'use client'
 
 import { TrendingUp, TrendingDown } from 'lucide-react'
+import { useMarket } from '@/contexts/MarketContext'
 
 export default function TickerTape() {
-  const tickerData = [
+  const { currentMarket, marketConfig } = useMarket()
+
+  const worldTickerData = [
     { symbol: 'AAPL', price: 150.25, change: 2.45, changePercent: 1.66 },
     { symbol: 'GOOGL', price: 2800.50, change: -15.30, changePercent: -0.54 },
     { symbol: 'MSFT', price: 330.75, change: 5.20, changePercent: 1.60 },
@@ -18,10 +21,27 @@ export default function TickerTape() {
     { symbol: 'INTC', price: 45.67, change: -1.23, changePercent: -2.62 },
   ]
 
+  const indianTickerData = [
+    { symbol: 'RELIANCE', price: 2456.75, change: 45.30, changePercent: 1.88 },
+    { symbol: 'TCS', price: 3567.20, change: -23.45, changePercent: -0.65 },
+    { symbol: 'HDFCBANK', price: 1634.50, change: 28.75, changePercent: 1.79 },
+    { symbol: 'INFY', price: 1456.80, change: 15.60, changePercent: 1.08 },
+    { symbol: 'HINDUNILVR', price: 2789.45, change: -12.30, changePercent: -0.44 },
+    { symbol: 'ICICIBANK', price: 945.60, change: 18.90, changePercent: 2.04 },
+    { symbol: 'KOTAKBANK', price: 1876.25, change: -8.75, changePercent: -0.46 },
+    { symbol: 'BHARTIARTL', price: 867.30, change: 12.45, changePercent: 1.46 },
+    { symbol: 'ITC', price: 456.80, change: 5.60, changePercent: 1.24 },
+    { symbol: 'SBIN', price: 567.45, change: -3.25, changePercent: -0.57 },
+    { symbol: 'ASIANPAINT', price: 3234.60, change: 67.80, changePercent: 2.14 },
+    { symbol: 'MARUTI', price: 9876.50, change: -45.30, changePercent: -0.46 },
+  ]
+
+  const tickerData = currentMarket === 'indian' ? indianTickerData : worldTickerData
+
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(currentMarket === 'indian' ? 'en-IN' : 'en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: marketConfig.currency,
       minimumFractionDigits: 2,
     }).format(value)
   }

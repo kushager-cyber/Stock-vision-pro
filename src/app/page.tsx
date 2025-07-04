@@ -34,12 +34,12 @@ export default function Home() {
       <div className="min-h-screen flex flex-col">
         {/* Header */}
         <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-        
+
         {/* Main Content */}
         <div className="flex flex-1 relative">
           {/* Sidebar */}
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-          
+
           {/* Dashboard */}
           <main className={`flex-1 transition-all duration-300 ${
             sidebarOpen ? 'lg:ml-64' : ''
@@ -47,7 +47,7 @@ export default function Home() {
             <Dashboard />
           </main>
         </div>
-        
+
         {/* Ticker Tape */}
         <TickerTape />
 

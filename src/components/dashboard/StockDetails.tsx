@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { Info, DollarSign, TrendingUp, BarChart3, Calendar, Star } from 'lucide-react'
 import { useStock } from '@/contexts/StockContext'
+import { useMarket } from '@/contexts/MarketContext'
 import { motion } from 'framer-motion'
 
 export default function StockDetails() {
   const { state, dispatch } = useStock()
+  const { currentMarket, marketConfig } = useMarket()
   const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'analysis'>('overview')
 
   const stockInfo = {
@@ -40,23 +42,24 @@ export default function StockDetails() {
   const isInWatchlist = state.watchlist.some(item => item.symbol === state.selectedStock)
 
   const formatCurrency = (value: number) => {
+    const currencySymbol = marketConfig.currencySymbol
     if (value >= 1e12) {
-      return `$${(value / 1e12).toFixed(2)}T`
+      return `${currencySymbol}${(value / 1e12).toFixed(2)}T`
     } else if (value >= 1e9) {
-      return `$${(value / 1e9).toFixed(2)}B`
+      return `${currencySymbol}${(value / 1e9).toFixed(2)}B`
     } else if (value >= 1e6) {
-      return `$${(value / 1e6).toFixed(2)}M`
+      return `${currencySymbol}${(value / 1e6).toFixed(2)}M`
     } else {
-      return new Intl.NumberFormat('en-US', {
+      return new Intl.NumberFormat(currentMarket === 'indian' ? 'en-IN' : 'en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: marketConfig.currency,
         minimumFractionDigits: 2,
       }).format(value)
     }
   }
 
   const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('en-US').format(value)
+    return new Intl.NumberFormat(currentMarket === 'indian' ? 'en-IN' : 'en-US').format(value)
   }
 
   const toggleWatchlist = () => {

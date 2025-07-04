@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { stockApi } from '@/services/stockApi'
 import { mlService } from '@/services/mlService'
 import { StockData, ChartData, PredictionData, NewsItem } from '@/types/stock'
+import { MarketType } from '@/contexts/MarketContext'
 
-export function useStockData(symbol: string) {
+export function useStockData(symbol: string, market?: MarketType) {
   const [stockData, setStockData] = useState<StockData | null>(null)
   const [chartData, setChartData] = useState<ChartData[]>([])
   const [predictions, setPredictions] = useState<PredictionData | null>(null)
@@ -21,8 +22,8 @@ export function useStockData(symbol: string) {
 
     try {
       const [stock, chart, stockNews] = await Promise.all([
-        stockApi.getStockData(symbol),
-        stockApi.getChartData(symbol, '1M'),
+        stockApi.getStockData(symbol, market),
+        stockApi.getChartData(symbol, '1M', market),
         stockApi.getNews(symbol),
       ])
 
@@ -38,7 +39,7 @@ export function useStockData(symbol: string) {
     } finally {
       setLoading(false)
     }
-  }, [symbol])
+  }, [symbol, market])
 
   useEffect(() => {
     fetchStockData()
@@ -59,7 +60,7 @@ export function useStockData(symbol: string) {
   }
 }
 
-export function useRealTimePrice(symbol: string, interval: number = 5000) {
+export function useRealTimePrice(symbol: string, market?: MarketType, interval: number = 5000) {
   const [price, setPrice] = useState<number | null>(null)
   const [change, setChange] = useState<number>(0)
   const [changePercent, setChangePercent] = useState<number>(0)
@@ -69,7 +70,7 @@ export function useRealTimePrice(symbol: string, interval: number = 5000) {
 
     const updatePrice = async () => {
       try {
-        const stockData = await stockApi.getStockData(symbol)
+        const stockData = await stockApi.getStockData(symbol, market)
         setPrice(stockData.price)
         setChange(stockData.change)
         setChangePercent(stockData.changePercent)
@@ -85,7 +86,7 @@ export function useRealTimePrice(symbol: string, interval: number = 5000) {
     const intervalId = setInterval(updatePrice, interval)
 
     return () => clearInterval(intervalId)
-  }, [symbol, interval])
+  }, [symbol, market, interval])
 
   return { price, change, changePercent }
 }

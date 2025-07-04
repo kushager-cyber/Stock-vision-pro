@@ -2,9 +2,12 @@
 
 import { TrendingUp, TrendingDown, Activity, DollarSign } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useMarket } from '@/contexts/MarketContext'
 
 export default function MarketOverview() {
-  const marketData = [
+  const { currentMarket, marketConfig } = useMarket()
+
+  const worldMarketData = [
     {
       name: 'S&P 500',
       symbol: 'SPX',
@@ -39,10 +42,47 @@ export default function MarketOverview() {
     },
   ]
 
+  const indianMarketData = [
+    {
+      name: 'NIFTY 50',
+      symbol: 'NIFTY',
+      value: 19845.65,
+      change: 125.30,
+      changePercent: 0.63,
+      icon: TrendingUp,
+    },
+    {
+      name: 'SENSEX',
+      symbol: 'SENSEX',
+      value: 66589.93,
+      change: -89.45,
+      changePercent: -0.13,
+      icon: TrendingDown,
+    },
+    {
+      name: 'BANK NIFTY',
+      symbol: 'BANKNIFTY',
+      value: 45234.78,
+      change: 234.56,
+      changePercent: 0.52,
+      icon: TrendingUp,
+    },
+    {
+      name: 'INDIA VIX',
+      symbol: 'INDIAVIX',
+      value: 13.45,
+      change: -0.85,
+      changePercent: -5.95,
+      icon: Activity,
+    },
+  ]
+
+  const marketData = currentMarket === 'indian' ? indianMarketData : worldMarketData
+
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(currentMarket === 'indian' ? 'en-IN' : 'en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: marketConfig.currency,
       minimumFractionDigits: 2,
     }).format(value)
   }
@@ -54,7 +94,12 @@ export default function MarketOverview() {
   return (
     <div className="glass-card">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">Market Overview</h2>
+        <div>
+          <h2 className="text-xl font-bold text-white">Market Overview</h2>
+          <p className="text-sm text-gray-400 mt-1">
+            {currentMarket === 'indian' ? 'Indian Markets' : 'Global Markets'} • {marketConfig.currency}
+          </p>
+        </div>
         <div className="flex items-center space-x-2 text-sm text-gray-400">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
           <span>Live Data</span>

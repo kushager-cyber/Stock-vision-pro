@@ -3,13 +3,36 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Default theme variables (Dark Blue) */
+    --color-primary: #3b82f6;
+    --color-secondary: #1e40af;
+    --color-accent: #60a5fa;
+    --color-background: #0f172a;
+    --color-surface: #1e293b;
+    --color-text: #f8fafc;
+    --color-textSecondary: #cbd5e1;
+    --color-success: #22c55e;
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
+    --color-info: #3b82f6;
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-glass: rgba(255, 255, 255, 0.05);
+    --gradient-main: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    --gradient-card: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+    --gradient-button: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    --gradient-accent: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  }
+
   * {
     @apply border-gray-200;
   }
+
   body {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    background: var(--gradient-main);
     min-height: 100vh;
-    color: #f8fafc;
+    color: var(--color-text);
+    transition: background 0.3s ease, color 0.3s ease;
   }
 
   html {
@@ -19,23 +42,41 @@
 
 @layer components {
   .glass {
-    @apply bg-white/5 backdrop-blur-md border border-white/10;
+    background: var(--color-glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--color-border);
   }
-  
+
   .glass-card {
     @apply glass rounded-xl p-6 shadow-2xl;
   }
-  
+
   .neon-border {
-    @apply border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)];
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 0 15px var(--color-primary);
+    opacity: 0.5;
   }
-  
+
   .neon-text {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
-  
+
   .gradient-bg {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+    background: var(--gradient-card);
+  }
+
+  .theme-button {
+    background: var(--gradient-button);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .theme-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
   }
   
   .stock-up {

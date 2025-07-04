@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 import { PredictionData, ChartData } from '@/types/stock'
+import { MarketType } from '@/contexts/MarketContext'
 
 // Configure TensorFlow.js for server-side rendering
 if (typeof window === 'undefined') {
@@ -140,7 +141,7 @@ class MLService {
     }
   }
 
-  async predict(chartData: ChartData[], symbol: string): Promise<PredictionData> {
+  async predict(chartData: ChartData[], symbol: string, market?: MarketType): Promise<PredictionData> {
     if (!this.model) {
       await this.initializeModel()
     }
@@ -150,36 +151,40 @@ class MLService {
       const prices = chartData.map(d => d.close)
       const currentPrice = prices[prices.length - 1]
 
+      // Adjust prediction parameters based on market
+      const marketMultiplier = market === 'indian' ? 1.2 : 1.0 // Indian markets tend to be more volatile
+      const baseVolatility = market === 'indian' ? 0.08 : 0.05
+
       // For demo purposes, generate mock predictions with some randomness
       const predictions = [
         {
           timeframe: '1d' as const,
-          predictedPrice: currentPrice * (1 + (Math.random() - 0.5) * 0.05),
-          confidence: 75 + Math.random() * 20,
+          predictedPrice: currentPrice * (1 + (Math.random() - 0.5) * baseVolatility * marketMultiplier),
+          confidence: (75 + Math.random() * 20) * (market === 'indian' ? 0.9 : 1.0), // Slightly lower confidence for Indian stocks
           direction: Math.random() > 0.5 ? 'up' as const : 'down' as const,
           change: 0,
           changePercent: 0,
         },
         {
           timeframe: '1w' as const,
-          predictedPrice: currentPrice * (1 + (Math.random() - 0.5) * 0.15),
-          confidence: 70 + Math.random() * 20,
+          predictedPrice: currentPrice * (1 + (Math.random() - 0.5) * 0.15 * marketMultiplier),
+          confidence: (70 + Math.random() * 20) * (market === 'indian' ? 0.9 : 1.0),
           direction: Math.random() > 0.5 ? 'up' as const : 'down' as const,
           change: 0,
           changePercent: 0,
         },
         {
           timeframe: '1m' as const,
-          predictedPrice: currentPrice * (1 + (Math.random() - 0.5) * 0.25),
-          confidence: 65 + Math.random() * 20,
+          predictedPrice: currentPrice * (1 + (Math.random() - 0.5) * 0.25 * marketMultiplier),
+          confidence: (65 + Math.random() * 20) * (market === 'indian' ? 0.9 : 1.0),
           direction: Math.random() > 0.5 ? 'up' as const : 'down' as const,
           change: 0,
           changePercent: 0,
         },
         {
           timeframe: '3m' as const,
-          predictedPrice: currentPrice * (1 + (Math.random() - 0.5) * 0.35),
-          confidence: 60 + Math.random() * 20,
+          predictedPrice: currentPrice * (1 + (Math.random() - 0.5) * 0.35 * marketMultiplier),
+          confidence: (60 + Math.random() * 20) * (market === 'indian' ? 0.9 : 1.0),
           direction: Math.random() > 0.5 ? 'up' as const : 'down' as const,
           change: 0,
           changePercent: 0,
@@ -193,14 +198,15 @@ class MLService {
         prediction.direction = prediction.change >= 0 ? 'up' : 'down'
       })
 
-      // Generate enhanced prediction data
-      const accuracy = 75 + Math.random() * 20
-      const technicalFactor = 70 + Math.random() * 25
-      const fundamentalFactor = 75 + Math.random() * 20
-      const sentimentFactor = 65 + Math.random() * 30
-      const marketFactor = 80 + Math.random() * 15
-      const newsFactor = 70 + Math.random() * 25
-      const volumeFactor = 65 + Math.random() * 30
+      // Generate enhanced prediction data with market-specific adjustments
+      const marketAdjustment = market === 'indian' ? 0.95 : 1.0
+      const accuracy = (75 + Math.random() * 20) * marketAdjustment
+      const technicalFactor = (70 + Math.random() * 25) * marketAdjustment
+      const fundamentalFactor = (75 + Math.random() * 20) * marketAdjustment
+      const sentimentFactor = (65 + Math.random() * 30) * (market === 'indian' ? 1.1 : 1.0) // Indian markets more sentiment-driven
+      const marketFactor = (80 + Math.random() * 15) * marketAdjustment
+      const newsFactor = (70 + Math.random() * 25) * (market === 'indian' ? 1.15 : 1.0) // News has more impact in Indian markets
+      const volumeFactor = (65 + Math.random() * 30) * marketAdjustment
 
       // Add probability distributions and risk/reward to predictions
       const enhancedPredictions = predictions.map(pred => ({

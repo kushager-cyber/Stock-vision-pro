@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, X, TrendingUp, Star, Clock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStock } from '@/contexts/StockContext'
+import { useMarket } from '@/contexts/MarketContext'
 
 interface SearchModalProps {
   isOpen: boolean
@@ -12,14 +13,17 @@ interface SearchModalProps {
 
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const { dispatch } = useStock()
+  const { currentMarket, marketConfig } = useMarket()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
-  const [recentSearches, setRecentSearches] = useState([
-    'AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN'
-  ])
+  const [recentSearches, setRecentSearches] = useState(
+    currentMarket === 'indian'
+      ? ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK']
+      : ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN']
+  )
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const popularStocks = [
+  const worldPopularStocks = [
     { symbol: 'AAPL', name: 'Apple Inc.', price: 150.25, change: 1.66 },
     { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 2800.50, change: -0.54 },
     { symbol: 'MSFT', name: 'Microsoft Corp.', price: 330.75, change: 1.60 },
@@ -29,6 +33,19 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     { symbol: 'META', name: 'Meta Platforms Inc.', price: 325.67, change: -2.66 },
     { symbol: 'NFLX', name: 'Netflix Inc.', price: 425.30, change: 3.10 },
   ]
+
+  const indianPopularStocks = [
+    { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', price: 2456.75, change: 1.88 },
+    { symbol: 'TCS', name: 'Tata Consultancy Services', price: 3567.20, change: -0.65 },
+    { symbol: 'HDFCBANK', name: 'HDFC Bank Limited', price: 1634.50, change: 1.79 },
+    { symbol: 'INFY', name: 'Infosys Limited', price: 1456.80, change: 1.08 },
+    { symbol: 'HINDUNILVR', name: 'Hindustan Unilever Ltd.', price: 2789.45, change: -0.44 },
+    { symbol: 'ICICIBANK', name: 'ICICI Bank Limited', price: 945.60, change: 2.04 },
+    { symbol: 'KOTAKBANK', name: 'Kotak Mahindra Bank', price: 1876.25, change: -0.46 },
+    { symbol: 'BHARTIARTL', name: 'Bharti Airtel Limited', price: 867.30, change: 1.46 },
+  ]
+
+  const popularStocks = currentMarket === 'indian' ? indianPopularStocks : worldPopularStocks
 
   useEffect(() => {
     if (isOpen && inputRef.current) {

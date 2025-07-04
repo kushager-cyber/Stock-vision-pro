@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { createChart, ColorType, IChartApi } from 'lightweight-charts'
 import { useStock } from '@/contexts/StockContext'
+import { useMarket } from '@/contexts/MarketContext'
 import { Calendar, TrendingUp, BarChart3, Maximize2 } from 'lucide-react'
 
 export default function StockChart() {
   const { state } = useStock()
+  const { currentMarket, marketConfig } = useMarket()
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const [timeframe, setTimeframe] = useState('1D')

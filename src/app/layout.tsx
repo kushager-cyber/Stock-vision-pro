@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import { MarketProvider } from '@/contexts/MarketContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,9 +27,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} antialiased`}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-          {children}
-        </div>
+        <ThemeProvider>
+          <MarketProvider>
+            <div className="min-h-screen">
+              {children}
+            </div>
+          </MarketProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

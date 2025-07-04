@@ -2,6 +2,7 @@ import axios from 'axios'
 import { StockData, NewsItem, ChartData, SearchResult } from '@/types/stock'
 import { realTimeDataService } from './realTimeDataService'
 import { freeApiService } from './freeApiService'
+import { indianStockApi } from './indianStockApi'
 
 // Enhanced API service with real-time data integration
 class StockApiService {
@@ -160,9 +161,17 @@ class StockApiService {
     }
   }
 
-  async getStockData(symbol: string): Promise<StockData> {
+  async getStockData(symbol: string, market?: 'world' | 'indian'): Promise<StockData> {
     try {
       // Check if user wants real data
+      // Check if this is an Indian stock request
+      const isIndianStock = market === 'indian' || this.isIndianSymbol(symbol)
+
+      if (isIndianStock) {
+        console.log(`Fetching Indian stock data for ${symbol}...`)
+        return await indianStockApi.getStockData(symbol)
+      }
+
       const useRealData = this.shouldUseRealData()
 
       if (useRealData) {
@@ -205,6 +214,17 @@ class StockApiService {
     }
   }
 
+  private isIndianSymbol(symbol: string): boolean {
+    // Check if symbol has Indian exchange suffix
+    if (symbol.includes('.NS') || symbol.includes('.BO')) {
+      return true
+    }
+
+    // Check against common Indian stock symbols
+    const indianSymbols = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'HINDUNILVR', 'ICICIBANK', 'KOTAKBANK', 'BHARTIARTL', 'ITC', 'SBIN']
+    return indianSymbols.includes(symbol.toUpperCase())
+  }
+
   private shouldUseRealData(): boolean {
     // Check localStorage for user preference
     if (typeof window !== 'undefined') {
@@ -229,8 +249,16 @@ class StockApiService {
     return false
   }
 
-  async getChartData(symbol: string, timeframe: string): Promise<ChartData[]> {
+  async getChartData(symbol: string, timeframe: string, market?: 'world' | 'indian'): Promise<ChartData[]> {
     try {
+      // Check if this is an Indian stock request
+      const isIndianStock = market === 'indian' || this.isIndianSymbol(symbol)
+
+      if (isIndianStock) {
+        console.log(`Fetching Indian chart data for ${symbol} (${timeframe})...`)
+        return await indianStockApi.getChartData(symbol, timeframe)
+      }
+
       const useRealData = this.shouldUseRealData()
 
       if (useRealData) {
@@ -261,8 +289,14 @@ class StockApiService {
     }
   }
 
-  async searchStocks(query: string): Promise<SearchResult[]> {
+  async searchStocks(query: string, market?: 'world' | 'indian'): Promise<SearchResult[]> {
     try {
+      // If searching for Indian stocks
+      if (market === 'indian') {
+        console.log(`Searching Indian stocks for "${query}"...`)
+        return await indianStockApi.searchStocks(query)
+      }
+
       const useRealData = this.shouldUseRealData()
 
       if (useRealData) {
