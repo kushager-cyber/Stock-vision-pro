@@ -149,11 +149,12 @@ export default function ApiConfigPage() {
       switch (apiName) {
         case 'Yahoo Finance':
           console.log('🔄 Testing Yahoo Finance API connection...')
-          await freeApiService.getStockData('AAPL')
-          testResult = '✅ API is working! Ready to connect.'
-          setApiConfigs(prev => prev.map(api =>
-            api.name === apiName ? { ...api, status: 'tested', isWorking: true } : api
-          ))
+          const yahooResult = await freeApiService.testYahooFinance()
+
+          isWorking = yahooResult.success
+          testResult = yahooResult.success
+            ? `✅ API is working! Ready to connect.\n${yahooResult.message}`
+            : `❌ API test failed\n${yahooResult.message}`
           break
 
         case 'Alpha Vantage':
@@ -161,16 +162,18 @@ export default function ApiConfigPage() {
           const alphaVantageConfig = apiConfigs.find(api => api.name === 'Alpha Vantage')
           const alphaVantageKey = alphaVantageConfig?.key || ''
 
-          console.log('🔄 Testing Alpha Vantage API connection...')
-          const alphaVantageResult = await alphaVantageService.testConnection(alphaVantageKey)
+          if (!alphaVantageKey || alphaVantageKey.trim() === '') {
+            isWorking = false
+            testResult = '❌ Alpha Vantage API key is required\nPlease enter your API key first'
+          } else {
+            console.log('🔄 Testing Alpha Vantage API connection...')
+            const alphaVantageResult = await alphaVantageService.testConnection(alphaVantageKey)
 
-          testResult = alphaVantageResult.success
-            ? `✅ API is working! Ready to connect.\n${alphaVantageResult.message}`
-            : `❌ API test failed\n${alphaVantageResult.message}`
-
-          setApiConfigs(prev => prev.map(api =>
-            api.name === apiName ? { ...api, status: 'tested', isWorking: alphaVantageResult.success } : api
-          ))
+            isWorking = alphaVantageResult.success
+            testResult = alphaVantageResult.success
+              ? `✅ API is working! Ready to connect.\n${alphaVantageResult.message}`
+              : `❌ API test failed\n${alphaVantageResult.message}`
+          }
           break
 
         case 'NSE India':
@@ -196,11 +199,43 @@ export default function ApiConfigPage() {
           ))
           break
 
+        case 'IEX Cloud':
+          // Test IEX Cloud API key format and basic validation
+          const iexConfig = apiConfigs.find(api => api.name === 'IEX Cloud')
+          const iexKey = iexConfig?.key || ''
+
+          if (!iexKey || iexKey.trim() === '') {
+            isWorking = false
+            testResult = '❌ IEX Cloud API key is required'
+          } else if (iexKey.length < 10) {
+            isWorking = false
+            testResult = '❌ IEX Cloud API key appears to be invalid (too short)'
+          } else {
+            isWorking = true
+            testResult = '✅ API key format looks valid! Ready to connect.\nNote: Full connectivity will be tested when used'
+          }
+          break
+
+        case 'Finnhub':
+          // Test Finnhub API key format and basic validation
+          const finnhubConfig = apiConfigs.find(api => api.name === 'Finnhub')
+          const finnhubKey = finnhubConfig?.key || ''
+
+          if (!finnhubKey || finnhubKey.trim() === '') {
+            isWorking = false
+            testResult = '❌ Finnhub API key is required'
+          } else if (finnhubKey.length < 10) {
+            isWorking = false
+            testResult = '❌ Finnhub API key appears to be invalid (too short)'
+          } else {
+            isWorking = true
+            testResult = '✅ API key format looks valid! Ready to connect.\nNote: Full connectivity will be tested when used'
+          }
+          break
+
         default:
           testResult = '❌ API test not implemented yet'
-          setApiConfigs(prev => prev.map(api =>
-            api.name === apiName ? { ...api, status: 'tested', isWorking: false } : api
-          ))
+          isWorking = false
       }
 
       setTestResults(prev => ({ ...prev, [apiName]: testResult }))

@@ -412,6 +412,68 @@ class FreeApiService {
 
   // Removed mock data generation - only real API data allowed
 
+  // Test Yahoo Finance API connection
+  async testYahooFinance(): Promise<{ success: boolean; message: string; data?: any }> {
+    try {
+      console.log('🔄 Testing Yahoo Finance API connection...')
+
+      // Test with a simple stock request
+      const response = await axios.get('https://query1.finance.yahoo.com/v8/finance/chart/AAPL', {
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      })
+
+      if (response.data && response.data.chart && response.data.chart.result) {
+        const result = response.data.chart.result[0]
+        return {
+          success: true,
+          message: 'Yahoo Finance API is working properly',
+          data: {
+            symbol: result.meta.symbol,
+            price: result.meta.regularMarketPrice,
+            timestamp: new Date().toISOString()
+          }
+        }
+      }
+
+      return {
+        success: false,
+        message: 'Invalid response format from Yahoo Finance'
+      }
+
+    } catch (error) {
+      console.error('❌ Yahoo Finance test failed:', error)
+
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED') {
+          return {
+            success: false,
+            message: 'Yahoo Finance API request timed out'
+          }
+        }
+        if (error.response?.status === 404) {
+          return {
+            success: false,
+            message: 'Yahoo Finance endpoint not found'
+          }
+        }
+        if (error.message.includes('CORS')) {
+          return {
+            success: false,
+            message: 'CORS issue - Yahoo Finance may need proxy'
+          }
+        }
+      }
+
+      return {
+        success: false,
+        message: `Yahoo Finance test failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  }
+
   // Removed mock chart data generation - only real API data allowed
 
   private getFallbackSearchResults(query: string): SearchResult[] {
