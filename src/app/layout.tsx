@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { MarketProvider } from '@/contexts/MarketContext'
+import { GlobalStockProvider } from '@/contexts/GlobalStockContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -29,9 +30,11 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider>
           <MarketProvider>
-            <div className="min-h-screen">
-              {children}
-            </div>
+            <GlobalStockProvider>
+              <div className="min-h-screen">
+                {children}
+              </div>
+            </GlobalStockProvider>
           </MarketProvider>
         </ThemeProvider>
       </body>

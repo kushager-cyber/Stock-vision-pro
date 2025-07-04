@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  ArrowLeft, 
-  Settings, 
-  Database, 
-  Key, 
+import {
+  ArrowLeft,
+  Settings,
+  Database,
+  Key,
   Globe,
   CheckCircle,
   XCircle,
@@ -14,7 +14,9 @@ import {
   ExternalLink,
   Copy,
   Eye,
-  EyeOff
+  EyeOff,
+  WifiOff,
+  TrendingUp
 } from 'lucide-react'
 import { freeApiService } from '@/services/freeApiService'
 import { nseApiService } from '@/services/nseApiService'
@@ -27,58 +29,81 @@ interface ApiConfig {
   description: string
   freeLimit: string
   website: string
+  marketType: 'world' | 'indian'
+  exchanges: string[]
+  features: string[]
 }
 
 export default function ApiConfigPage() {
   const [useRealData, setUseRealData] = useState(false)
   const [apiConfigs, setApiConfigs] = useState<ApiConfig[]>([
+    // 🌍 WORLD STOCK MARKET APIs
     {
       name: 'Alpha Vantage',
       key: '',
       status: 'disconnected',
-      description: 'Free tier: 5 API requests per minute, 500 requests per day',
-      freeLimit: '500 requests/day',
-      website: 'https://www.alphavantage.co/support/#api-key'
+      description: '🌍 Premium global stock market data with real-time quotes and historical data',
+      freeLimit: '25 requests/day (Free tier)',
+      website: 'https://www.alphavantage.co/support/#api-key',
+      marketType: 'world',
+      exchanges: ['NYSE', 'NASDAQ', 'LSE', 'TSX', 'ASX', 'XETRA'],
+      features: ['Real-time quotes', 'Historical data', 'Technical indicators', 'Fundamental data']
     },
     {
       name: 'Yahoo Finance',
       key: 'No API key required',
       status: 'connected',
-      description: 'Free unlimited access to stock quotes and charts',
+      description: '🌍 Free global stock market data with excellent worldwide coverage',
       freeLimit: 'Unlimited (rate limited)',
-      website: 'https://finance.yahoo.com'
+      website: 'https://finance.yahoo.com',
+      marketType: 'world',
+      exchanges: ['NYSE', 'NASDAQ', 'LSE', 'TSX', 'EURONEXT', 'HKEX', 'TSE'],
+      features: ['Real-time quotes', 'Historical data', 'Market news', 'Global coverage']
     },
+    // 🇮🇳 INDIAN STOCK MARKET APIs
     {
       name: 'NSE India',
       key: 'No API key required',
       status: 'connected',
-      description: 'Free access to NSE (National Stock Exchange) India data',
+      description: '🇮🇳 National Stock Exchange of India - Official real-time Indian stock market data',
       freeLimit: 'Unlimited (rate limited)',
-      website: 'https://www.nseindia.com'
+      website: 'https://www.nseindia.com',
+      marketType: 'indian',
+      exchanges: ['NSE'],
+      features: ['NSE real-time data', 'Indian stocks', 'NIFTY indices', 'Sector data']
     },
     {
       name: 'BSE India',
       key: 'No API key required',
       status: 'connected',
-      description: 'Free access to BSE (Bombay Stock Exchange) India data',
+      description: '🇮🇳 Bombay Stock Exchange - Official Indian stock market data and SENSEX',
       freeLimit: 'Unlimited (rate limited)',
-      website: 'https://www.bseindia.com'
+      website: 'https://www.bseindia.com',
+      marketType: 'indian',
+      exchanges: ['BSE'],
+      features: ['BSE real-time data', 'Indian stocks', 'SENSEX index', 'Historical data']
     },
     {
       name: 'IEX Cloud',
       key: '',
       status: 'disconnected',
-      description: 'Free tier: 50,000 core data credits per month',
+      description: '🌍 US stock market data with comprehensive coverage',
       freeLimit: '50,000 credits/month',
-      website: 'https://iexcloud.io/pricing'
+      website: 'https://iexcloud.io/pricing',
+      marketType: 'world',
+      exchanges: ['NYSE', 'NASDAQ'],
+      features: ['Real-time quotes', 'Historical data', 'Company fundamentals', 'Market news']
     },
     {
       name: 'Finnhub',
       key: '',
       status: 'disconnected',
-      description: 'Free tier: 60 API calls per minute',
+      description: '🌍 Global financial data including stocks, forex, and crypto',
       freeLimit: '60 calls/minute',
-      website: 'https://finnhub.io/pricing'
+      website: 'https://finnhub.io/pricing',
+      marketType: 'world',
+      exchanges: ['NYSE', 'NASDAQ', 'LSE', 'EURONEXT'],
+      features: ['Real-time quotes', 'Financial news', 'Earnings data', 'Technical indicators']
     }
   ])
   const [showKeys, setShowKeys] = useState<{ [key: string]: boolean }>({})
@@ -208,6 +233,27 @@ export default function ApiConfigPage() {
     }
   }
 
+  const disconnectApi = (apiName: string) => {
+    setApiConfigs(prev => prev.map(api =>
+      api.name === apiName ? { ...api, status: 'disconnected', key: '' } : api
+    ))
+
+    // Clear from localStorage
+    if (apiName === 'Alpha Vantage' && typeof window !== 'undefined') {
+      try {
+        const existingConfig = localStorage.getItem('stockvision_api_config')
+        const config = existingConfig ? JSON.parse(existingConfig) : {}
+        delete config.alphaVantageKey
+        localStorage.setItem('stockvision_api_config', JSON.stringify(config))
+        console.log('✅ Alpha Vantage API disconnected and removed from localStorage')
+      } catch (error) {
+        console.error('❌ Failed to remove Alpha Vantage key:', error)
+      }
+    }
+
+    setTestResults(prev => ({ ...prev, [apiName]: `${apiName} API disconnected successfully` }))
+  }
+
   const toggleKeyVisibility = (apiName: string) => {
     setShowKeys(prev => ({ ...prev, [apiName]: !prev[apiName] }))
   }
@@ -233,6 +279,92 @@ export default function ApiConfigPage() {
       default: return 'text-gray-400'
     }
   }
+
+  const renderApiConfigForm = (api: ApiConfig, index: number) => (
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            API Key
+          </label>
+          <div className="relative">
+            <input
+              type={showKeys[api.name] ? 'text' : 'password'}
+              value={api.key}
+              onChange={(e) => updateApiKey(api.name, e.target.value)}
+              placeholder={api.key === 'No API key required' ? 'No API key required' : 'Enter your API key'}
+              disabled={api.key === 'No API key required'}
+              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            {api.key !== 'No API key required' && (
+              <button
+                type="button"
+                onClick={() => toggleKeyVisibility(api.name)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                {showKeys[api.name] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Free Limit
+          </label>
+          <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-gray-400">
+            {api.freeLimit}
+          </div>
+        </div>
+      </div>
+
+      {/* Features */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Features
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {api.features.map(feature => (
+            <span key={feature} className="px-3 py-1 bg-green-500/20 text-green-300 text-sm rounded-full">
+              {feature}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => testApiConnection(api.name)}
+            disabled={api.status === 'testing'}
+            className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white rounded-lg transition-colors"
+          >
+            {api.status === 'testing' ? 'Testing...' : 'Test Connection'}
+          </button>
+
+          {api.status === 'connected' && (
+            <button
+              onClick={() => disconnectApi(api.name)}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center space-x-2"
+            >
+              <WifiOff className="h-4 w-4" />
+              <span>Disconnect</span>
+            </button>
+          )}
+        </div>
+
+        <a
+          href={api.website}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          <span>Get API Key</span>
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      </div>
+    </>
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -311,17 +443,21 @@ export default function ApiConfigPage() {
           )}
         </motion.div>
 
-        {/* API Configuration */}
+        {/* World Stock Market APIs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="glass-card"
         >
-          <h2 className="text-xl font-bold text-white mb-6">Free API Services</h2>
-          
+          <div className="flex items-center space-x-3 mb-6">
+            <Globe className="h-6 w-6 text-blue-400" />
+            <h2 className="text-xl font-bold text-white">🌍 World Stock Market APIs</h2>
+          </div>
+          <p className="text-gray-400 mb-6">APIs for global stock markets including NYSE, NASDAQ, LSE, TSX, and more</p>
+
           <div className="space-y-6">
-            {apiConfigs.map((api, index) => (
+            {apiConfigs.filter(api => api.marketType === 'world').map((api, index) => (
               <motion.div
                 key={api.name}
                 initial={{ opacity: 0, x: -20 }}
@@ -335,9 +471,16 @@ export default function ApiConfigPage() {
                     <div>
                       <h3 className="text-lg font-semibold text-white">{api.name}</h3>
                       <p className="text-sm text-gray-400">{api.description}</p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {api.exchanges.map(exchange => (
+                          <span key={exchange} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
+                            {exchange}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-3">
                     {getStatusIcon(api.status)}
                     <span className={`text-sm font-medium ${getStatusColor(api.status)}`}>
@@ -346,78 +489,59 @@ export default function ApiConfigPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      API Key
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showKeys[api.name] ? 'text' : 'password'}
-                        value={api.key}
-                        onChange={(e) => updateApiKey(api.name, e.target.value)}
-                        placeholder={api.name === 'Yahoo Finance' ? 'No API key required' : 'Enter your API key'}
-                        disabled={api.name === 'Yahoo Finance'}
-                        className="w-full px-4 py-2 glass rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                      />
-                      {api.name !== 'Yahoo Finance' && (
-                        <button
-                          onClick={() => toggleKeyVisibility(api.name)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                        >
-                          {showKeys[api.name] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      )}
+                {renderApiConfigForm(api, index)}
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Indian Stock Market APIs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-card"
+        >
+          <div className="flex items-center space-x-3 mb-6">
+            <TrendingUp className="h-6 w-6 text-orange-400" />
+            <h2 className="text-xl font-bold text-white">🇮🇳 Indian Stock Market APIs</h2>
+          </div>
+          <p className="text-gray-400 mb-6">APIs specifically for Indian stock markets including NSE, BSE, NIFTY, and SENSEX</p>
+
+          <div className="space-y-6">
+            {apiConfigs.filter(api => api.marketType === 'indian').map((api, index) => (
+              <motion.div
+                key={api.name}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-6 glass rounded-lg"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Database className="h-6 w-6 text-orange-400" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">{api.name}</h3>
+                      <p className="text-sm text-gray-400">{api.description}</p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {api.exchanges.map(exchange => (
+                          <span key={exchange} className="px-2 py-1 bg-orange-500/20 text-orange-300 text-xs rounded">
+                            {exchange}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Free Tier Limit
-                    </label>
-                    <div className="px-4 py-2 bg-gray-700/50 rounded-lg text-gray-300">
-                      {api.freeLimit}
-                    </div>
+                  <div className="flex items-center space-x-3">
+                    {getStatusIcon(api.status)}
+                    <span className={`text-sm font-medium ${getStatusColor(api.status)}`}>
+                      {api.status.charAt(0).toUpperCase() + api.status.slice(1)}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <button
-                      onClick={() => testApiConnection(api.name)}
-                      disabled={api.status === 'testing'}
-                      className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white rounded-lg transition-colors"
-                    >
-                      {api.status === 'testing' ? 'Testing...' : 'Test Connection'}
-                    </button>
-                    
-                    <a
-                      href={api.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center space-x-2 px-4 py-2 glass hover:bg-white/10 text-gray-300 hover:text-white rounded-lg transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      <span>Get API Key</span>
-                    </a>
-                  </div>
-
-                  {api.key && api.name !== 'Yahoo Finance' && (
-                    <button
-                      onClick={() => copyToClipboard(api.key)}
-                      className="p-2 glass hover:bg-white/10 text-gray-300 hover:text-white rounded-lg transition-colors"
-                      title="Copy API Key"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-
-                {testResults[api.name] && (
-                  <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <p className="text-blue-300 text-sm">{testResults[api.name]}</p>
-                  </div>
-                )}
+                {renderApiConfigForm(api, index)}
               </motion.div>
             ))}
           </div>

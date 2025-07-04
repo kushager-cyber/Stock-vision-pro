@@ -4,7 +4,7 @@ import { StockData } from '@/types/stock'
 class AlphaVantageService {
   private readonly BASE_URL = 'https://www.alphavantage.co/query'
   private cache = new Map<string, { data: any; timestamp: number }>()
-  private readonly CACHE_TTL = 60000 // 1 minute cache
+  private readonly CACHE_TTL = 15000 // 15 seconds cache for more real-time data
 
   private getCachedData(key: string): any | null {
     const cached = this.cache.get(key)

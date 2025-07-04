@@ -4,18 +4,24 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Brain, Search } from 'lucide-react'
 import { useStock, StockProvider } from '@/contexts/StockContext'
+import { useGlobalStock } from '@/contexts/GlobalStockContext'
+import StockSelector from '@/components/stock/StockSelector'
 import AdvancedStockSearch from '@/components/search/AdvancedStockSearch'
 import PredictionInterface from '@/components/prediction/PredictionInterface'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 function PredictionsPageContent() {
   const { state } = useStock()
-  const [selectedStock, setSelectedStock] = useState(state.selectedStock || 'AAPL')
+  const { state: globalState } = useGlobalStock()
   const [showSearch, setShowSearch] = useState(false)
 
+  // Use the globally selected stock
+  const selectedStock = globalState.selectedStock
+  const selectedStockData = globalState.selectedStockData
+
   const handleStockSelect = (symbol: string) => {
-    setSelectedStock(symbol)
     setShowSearch(false)
+    // The global context will handle the stock selection
   }
 
   return (
@@ -57,6 +63,19 @@ function PredictionsPageContent() {
 
         {/* Main Content */}
         <main className="px-4 sm:px-6 lg:px-8 py-6">
+          {/* Stock Selector */}
+          <div className="mb-6">
+            <div className="glass-card">
+              <div className="p-4 border-b border-white/10">
+                <h2 className="text-lg font-semibold text-white mb-2">Select Stock for Prediction</h2>
+                <p className="text-sm text-gray-400">Choose a stock to generate AI-powered price predictions</p>
+              </div>
+              <div className="p-4">
+                <StockSelector showRefresh={true} />
+              </div>
+            </div>
+          </div>
+
           {/* Search Section */}
           <motion.div
             initial={{ height: 0, opacity: 0 }}
